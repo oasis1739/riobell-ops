@@ -205,6 +205,75 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans KR',sans-serif;back
 .toast{position:fixed;bottom:20px;right:20px;background:var(--ink);color:#fff;padding:10px 18px;border-radius:2px;font-family:'Space Mono',monospace;font-size:11px;box-shadow:4px 4px 0 var(--line2);transform:translateY(60px);opacity:0;transition:all .3s ease;z-index:600;max-width:340px;line-height:1.6}
 .toast.show{transform:translateY(0);opacity:1}
 .no-data{padding:40px;text-align:center;color:var(--ink4);font-family:'Space Mono',monospace;font-size:11px;line-height:2.2}
+
+/* DAILY */
+.hmPBtn{padding:4px 10px;border:1px solid #ffffff22;border-radius:2px;font-family:'Space Mono',monospace;font-size:9px;color:#ffffff60;background:transparent;cursor:pointer;transition:all .13s}
+.hmPBtn:hover,.hmPBtn.on{background:#ffffff18;border-color:#fff;color:#fff}
+.goal-bar{height:5px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:3px}
+.goal-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.week-hd{background:var(--ink);font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;padding:8px 14px;border-bottom:1px solid var(--line);color:#fff;display:flex;align-items:center;justify-content:space-between;cursor:default}
+.week-badge{font-family:'Space Mono',monospace;font-size:9px;color:#ffffff80}
+.dtab{padding:4px 10px;border:1.5px solid var(--line2);border-radius:2px;font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;letter-spacing:.8px;cursor:pointer;color:var(--ink3);background:transparent;transition:all .13s}
+.dtab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.dtab:hover:not(.on){background:var(--paper3)}
+.cross-tbl{border-collapse:collapse;white-space:nowrap}
+.cross-tbl th{padding:7px 10px;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1.2px;color:var(--ink);text-transform:uppercase;border:1px solid var(--line);background:var(--paper2);text-align:right;font-weight:700}
+.cross-tbl th:first-child{text-align:left;min-width:76px;position:sticky;left:0;z-index:6}
+.cross-tbl th.tc{background:var(--paper3)}
+.cross-tbl td{padding:7px 10px;text-align:right;border:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;transition:opacity .13s}
+.cross-tbl td:hover{opacity:.72}
+.cross-tbl td:first-child{text-align:left;font-family:'Noto Sans KR',sans-serif;font-size:11.5px;font-weight:600;color:var(--ink);background:var(--paper2);cursor:default;position:sticky;left:0;z-index:5}
+.cross-tbl td:first-child:hover{opacity:1}
+.cross-tbl td.tc{background:var(--paper3);font-weight:700}
+.cross-tbl tr.sr td{background:var(--paper3);font-weight:700 !important}
+.cross-tbl .sv{display:block;font-size:7.5px;margin-top:1px;opacity:.8}
+.cross-tbl tr.wr td:first-child{color:var(--red)}
+.cal-outer{padding:14px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-dh{text-align:center;font-family:'Space Mono',monospace;font-size:8px;color:var(--ink4);padding:3px 0}
+.cal-dh:first-child{color:var(--red)}.cal-dh:last-child{color:var(--blue)}
+.cal-cell{border:1px solid var(--line);border-radius:3px;padding:5px 6px;min-height:56px;cursor:pointer;transition:all .13s;position:relative;overflow:hidden}
+.cal-cell:hover{border-color:var(--ink);box-shadow:2px 2px 0 var(--line2)}
+.cal-cell.empty{background:transparent;border-color:transparent;pointer-events:none}
+.cal-bg{position:absolute;inset:0;z-index:0;pointer-events:none}
+.cal-in{position:relative;z-index:1}
+.cal-dn{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;line-height:1;margin-bottom:3px}
+.cal-dn.sun{color:var(--red)}.cal-dn.sat{color:var(--blue)}
+.cal-av{font-family:'Space Mono',monospace;font-size:8px;color:var(--ink2);line-height:1.5}
+.cal-rv{font-family:'Space Mono',monospace;font-size:7.5px;margin-top:1px}
+.daily-tbl{width:100%;border-collapse:collapse}
+.daily-tbl thead th{padding:8px 12px;text-align:right;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1.5px;color:var(--ink4);text-transform:uppercase;border-bottom:1.5px solid var(--line);background:var(--paper2);position:sticky;top:37px;z-index:4;white-space:nowrap}
+.daily-tbl thead th:first-child{text-align:left}
+.daily-tbl tbody tr{border-bottom:1px solid var(--line);cursor:pointer;transition:background .12s}
+.daily-tbl tbody tr:hover{background:var(--paper3)}
+.daily-tbl tbody tr.today-row{background:#fff9e6}
+.daily-tbl td{padding:9px 12px;text-align:right;font-family:'Space Mono',monospace;font-size:11px;color:var(--ink2);white-space:nowrap}
+.daily-tbl td:first-child{text-align:left;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;color:var(--ink)}
+.daily-tbl td.weekend{color:var(--red)}
+.daily-heat{display:inline-block;width:8px;height:8px;border-radius:1px;margin-right:6px;vertical-align:middle}
+.daily-bar-cell{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.daily-bar{height:4px;border-radius:2px;background:var(--ink);min-width:2px}
+
+/* DETAIL MODAL */
+.detail-modal{display:none;position:fixed;inset:0;background:#00000055;z-index:300;align-items:center;justify-content:center}
+.detail-modal.open{display:flex}
+.detail-box{background:var(--paper);border:2px solid var(--ink);width:640px;max-height:80vh;overflow-y:auto;box-shadow:6px 6px 0 var(--ink)}
+.detail-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:2px solid var(--ink);background:var(--ink);color:#fff;flex-shrink:0;position:sticky;top:0}
+.detail-hd-t{font-family:'Oswald',sans-serif;font-size:18px;font-weight:600;letter-spacing:2px}
+.detail-x{background:none;border:none;color:#fff;font-size:20px;cursor:pointer}
+.detail-body{padding:20px}
+.detail-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);margin-bottom:20px}
+.detail-kpi-box{background:var(--paper);padding:14px 16px}
+.detail-kpi-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1.5px;color:var(--ink3);text-transform:uppercase;margin-bottom:5px}
+.detail-kpi-val{font-family:'Oswald',sans-serif;font-size:22px;font-weight:600}
+.detail-rows-title{font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;letter-spacing:1px;color:var(--ink2);text-transform:uppercase;margin-bottom:10px}
+.detail-row-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:2px;margin-bottom:5px;background:var(--paper2);cursor:default}
+.detail-row-left{display:flex;flex-direction:column;gap:3px}
+.detail-row-brand{font-size:12.5px;font-weight:600;color:var(--ink)}
+.detail-row-ch{font-family:'Space Mono',monospace;font-size:9px;color:var(--ink3)}
+.detail-row-right{text-align:right}
+.detail-row-amt{font-family:'Oswald',sans-serif;font-size:16px;font-weight:600}
+.detail-row-ret{font-family:'Space Mono',monospace;font-size:9px;margin-top:2px}
 *::-webkit-scrollbar{width:4px;height:4px}
 *::-webkit-scrollbar-track{background:transparent}
 *::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
@@ -228,6 +297,7 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans KR',sans-serif;back
     <div class="nav" onclick="setNav('heatmap',this)"><span class="nav-ic">⊞</span>히트맵</div>
     <div class="nav" onclick="setNav('monthly',this)"><span class="nav-ic">▦</span>월별 추이</div>
     <div class="nav" onclick="setNav('returns',this)"><span class="nav-ic">↩</span>반품 분석</div>
+    <div class="nav" onclick="setNav('daily',this)"><span class="nav-ic">≡</span>일별 실적</div>
     <div class="sb-mid"></div>
     <div class="sb-grp">
       <div class="sb-grp-lbl">// 브랜드 그룹</div>
@@ -271,6 +341,7 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans KR',sans-serif;back
           <div class="tab on" onclick="setTab('brand',this)">브랜드·채널</div>
           <div class="tab" onclick="setTab('heatmap',this)">히트맵</div>
           <div class="tab" onclick="setTab('monthly',this)">월별 추이</div>
+          <div class="tab" onclick="setTab('daily',this)">일별 실적</div>
         </div>
         <div class="tc on" id="tc-brand">
           <table class="tbl">
@@ -289,6 +360,32 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans KR',sans-serif;back
         <div class="tc" id="tc-monthly">
           <div class="sec-hd"><span class="sec-hd-t">월별 추이</span><span class="sec-hd-m">클릭하면 해당 월 필터</span></div>
           <div style="padding:16px"><div id="moTable"></div></div>
+        </div>
+        <div class="tc" id="tc-daily">
+          <!-- 기간 선택 바 -->
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--ink);flex-wrap:wrap;flex-shrink:0">
+            <span style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;color:#fff;flex-shrink:0">일별 히트맵</span>
+            <div style="width:1px;height:18px;background:#ffffff25;flex-shrink:0"></div>
+            <input type="date" id="hmFrom" style="background:#ffffff12;border:1px solid #ffffff22;color:#fff;padding:4px 8px;font-family:'Space Mono',monospace;font-size:11px;border-radius:2px;width:120px">
+            <span style="font-family:'Space Mono',monospace;font-size:11px;color:#ffffff40">~</span>
+            <input type="date" id="hmTo"   style="background:#ffffff12;border:1px solid #ffffff22;color:#fff;padding:4px 8px;font-family:'Space Mono',monospace;font-size:11px;border-radius:2px;width:120px">
+            <div style="width:1px;height:18px;background:#ffffff25;flex-shrink:0"></div>
+            <button class="hmPBtn on" onclick="setHmPeriod(7,this)">7일</button>
+            <button class="hmPBtn" onclick="setHmPeriod(14,this)">14일</button>
+            <button class="hmPBtn" onclick="setHmPeriod(30,this)">이번달</button>
+            <button class="hmPBtn" onclick="setHmPeriod(0,this)">전체</button>
+            <button onclick="renderDailyTable()" style="padding:5px 14px;background:var(--red);border:none;border-radius:2px;font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;color:#fff;cursor:pointer">조회</button>
+            <div style="width:1px;height:18px;background:#ffffff25;flex-shrink:0"></div>
+            <!-- 목표 입력 -->
+            <span style="font-family:'Space Mono',monospace;font-size:9px;color:#ffffff50;flex-shrink:0">월목표</span>
+            <input type="number" id="monthlyGoal" placeholder="예) 300000000" style="background:#ffffff12;border:1px solid #ffffff22;color:#fff;padding:4px 8px;font-family:'Space Mono',monospace;font-size:10px;border-radius:2px;width:130px" oninput="saveGoal()">
+            <span style="font-family:'Space Mono',monospace;font-size:9px;color:#ffffff50" id="goalDisp"></span>
+            <div style="font-family:'Space Mono',monospace;font-size:10px;color:#ffffff40;margin-left:auto" id="hmStat">— 조회중</div>
+          </div>
+          <!-- 히트맵 테이블 -->
+          <div id="dailyContent" style="overflow:auto;flex:1"></div>
+          <!-- 하단 상세 패널 -->
+          <div id="dailyDetailPanel" style="display:none;border-top:2px solid var(--ink);background:var(--paper2);flex-shrink:0;max-height:280px;overflow-y:auto"></div>
         </div>
       </div>
 
@@ -695,6 +792,400 @@ function renderMonthlyTable(){
 }
 
 // ════════════════════════════
+// DAILY TABLE (히트맵 + 목표 + 주차)
+// ════════════════════════════
+let curDailyTab = 'heatmap';
+const GOAL_KEY = 'riobell_goals_v1';
+
+// ── 목표 저장/로드 ──
+function saveGoal(){
+  const v = document.getElementById('monthlyGoal').value;
+  const disp = document.getElementById('goalDisp');
+  if(v){ 
+    try{localStorage.setItem(GOAL_KEY, v)}catch(e){}
+    disp.textContent = '= ₩' + won(Number(v));
+  } else {
+    disp.textContent = '';
+  }
+}
+function loadGoal(){
+  try{
+    const v = localStorage.getItem(GOAL_KEY);
+    if(v){
+      document.getElementById('monthlyGoal').value = v;
+      document.getElementById('goalDisp').textContent = '= ₩' + won(Number(v));
+    }
+  }catch(e){}
+}
+
+// 월 목표 → 일별 목표 (영업일 기준 균등 배분)
+function getDailyGoal(dt, monthlyGoal){
+  if(!monthlyGoal) return 0;
+  const d = new Date(dt);
+  const yr = d.getFullYear(), mo = d.getMonth();
+  const daysInMonth = new Date(yr, mo+1, 0).getDate();
+  // 해당 월의 영업일 수 계산 (주말 제외)
+  let bizDays = 0;
+  for(let i=1;i<=daysInMonth;i++){
+    const dow = new Date(yr,mo,i).getDay();
+    if(dow!==0&&dow!==6) bizDays++;
+  }
+  const dayDow = d.getDay();
+  if(dayDow===0||dayDow===6) return 0; // 주말은 목표 0
+  return Math.round(monthlyGoal / bizDays);
+}
+
+// 주차 계산 (해당 월의 몇째주)
+function getWeekOfMonth(dt){
+  const d = new Date(dt);
+  const firstDay = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
+  return Math.ceil((d.getDate() + firstDay) / 7);
+}
+
+// 기간 빠른 선택
+function setHmPeriod(n, el){
+  document.querySelectorAll('.hmPBtn').forEach(e=>e.classList.remove('on'));
+  el.classList.add('on');
+  const allDates = DB.map(r=>r.date).filter(Boolean).sort();
+  if(!allDates.length) return;
+  const lastDate = allDates[allDates.length-1];
+  const last = new Date(lastDate);
+  if(n===0){
+    document.getElementById('hmFrom').value = allDates[0];
+    document.getElementById('hmTo').value   = lastDate;
+  } else {
+    const from = new Date(last);
+    from.setDate(last.getDate() - n + 1);
+    document.getElementById('hmFrom').value = from.toISOString().slice(0,10);
+    document.getElementById('hmTo').value   = lastDate;
+  }
+}
+
+// 날짜 범위 초기 세팅
+function initHmDates(){
+  const allDates = DB.map(r=>r.date).filter(Boolean).sort();
+  if(!allDates.length) return;
+  if(!document.getElementById('hmFrom').value){
+    document.getElementById('hmFrom').value = allDates[0];
+    document.getElementById('hmTo').value   = allDates[allDates.length-1];
+  }
+}
+
+// ── 메인 렌더 ──
+function renderDailyTable(){
+  initHmDates();
+  const fromVal = document.getElementById('hmFrom').value;
+  const toVal   = document.getElementById('hmTo').value;
+  const monthlyGoal = Number(document.getElementById('monthlyGoal').value)||0;
+  const el = id('dailyContent');
+
+  // 필터: 날짜 + 그룹
+  const d = DB.filter(r=>{
+    if(!r.date) return false;
+    if(fromVal && r.date < fromVal) return false;
+    if(toVal   && r.date > toVal)   return false;
+    if(curGroup!=='all' && r.group!==curGroup) return false;
+    return true;
+  });
+
+  if(!d.length){el.innerHTML='<div class="no-data">해당 기간 데이터가 없습니다</div>';return;}
+
+  // 날짜별 집계
+  const dayMap={};
+  d.forEach(r=>{
+    if(!dayMap[r.date]) dayMap[r.date]={cAmt:0,rAmt:0,brands:{},channels:{}};
+    const dm=dayMap[r.date];
+    if(r.status==='complete'){dm.cAmt+=r.completeAmt;}
+    if(r.status==='return'){dm.rAmt+=r.retAmt;}
+    const b=r.brand||'미분류', ch=r.channel||'미분류';
+    if(!dm.brands[b]) dm.brands[b]={cAmt:0,rAmt:0};
+    if(!dm.channels[ch]) dm.channels[ch]={cAmt:0,rAmt:0};
+    if(r.status==='complete'){dm.brands[b].cAmt+=r.completeAmt;dm.channels[ch].cAmt+=r.completeAmt;}
+    if(r.status==='return'){dm.brands[b].rAmt+=r.retAmt;dm.channels[ch].rAmt+=r.retAmt;}
+  });
+
+  // 브랜드·채널 목록 (총액 내림차순)
+  const brandTotals={}, chTotals={};
+  d.forEach(r=>{
+    const b=r.brand||'미분류', ch=r.channel||'미분류';
+    if(r.status==='complete'){brandTotals[b]=(brandTotals[b]||0)+r.completeAmt; chTotals[ch]=(chTotals[ch]||0)+r.completeAmt;}
+  });
+  const brands = Object.keys(brandTotals).sort((a,b2)=>brandTotals[b2]-brandTotals[a]);
+  const channels = Object.keys(chTotals).sort((a,b2)=>chTotals[b2]-chTotals[a]);
+  const days = Object.keys(dayMap).sort().reverse();
+
+  // 전체 최대값
+  const allAmts = days.flatMap(dt=>[
+    ...brands.map(b=>dayMap[dt].brands[b]?.cAmt||0),
+    ...channels.map(ch=>dayMap[dt].channels[ch]?.cAmt||0)
+  ]);
+  const gMax = Math.max(...allAmts, 1);
+
+  // stat 업데이트
+  const totC = days.reduce((s,dt)=>s+dayMap[dt].cAmt,0);
+  const totR = days.reduce((s,dt)=>s+dayMap[dt].rAmt,0);
+  const totGoal = days.reduce((s,dt)=>s+getDailyGoal(dt,monthlyGoal),0);
+  const achv = totGoal>0?Math.round(totC/totGoal*100):0;
+  id('hmStat').textContent = `${days.length}일 · ₩${won(totC)}${totGoal>0?' · 달성률 '+achv+'%':''}`;
+
+  // ── 테이블 HTML 생성 ──
+  let html=`<div style="overflow-x:auto"><table class="cross-tbl" style="min-width:100%">
+  <thead>
+    <tr>
+      <th rowspan="2" style="position:sticky;left:0;z-index:9;background:var(--paper2);min-width:90px;text-align:left">날짜</th>
+      ${monthlyGoal?'<th rowspan="2" style="text-align:center;min-width:70px;background:var(--paper3)">목표<br>달성률</th>':'' }
+      <th colspan="${brands.length}" style="text-align:center;background:#1a237e;color:#fff;letter-spacing:1px;font-family:\'Oswald\',sans-serif;font-size:10px">◈ 브랜드</th>
+      <th colspan="${channels.length}" style="text-align:center;background:#00695c;color:#fff;letter-spacing:1px;font-family:\'Oswald\',sans-serif;font-size:10px">◈ 채널</th>
+      <th rowspan="2" class="tc" style="position:sticky;right:0;z-index:8">합계</th>
+    </tr>
+    <tr>
+      ${brands.map((b,i)=>`<th class="${i===0?'b-first':''}" style="min-width:72px">${b}</th>`).join('')}
+      ${channels.map((ch,i)=>`<th class="${i===0?'c-first':''}" style="min-width:72px">${ch}</th>`).join('')}
+    </tr>
+  </thead>
+  <tbody>`;
+
+  // 주차 그룹핑
+  let curWeek = null;
+  let weekAmts = {}; // weekKey → {cAmt, rAmt, goal}
+  const weekOrder = [];
+
+  days.forEach(dt=>{
+    const wk = getWeekOfMonth(dt);
+    const ym = dt.substring(0,7);
+    const wkKey = ym+'-W'+wk;
+    if(!weekAmts[wkKey]){weekAmts[wkKey]={cAmt:0,rAmt:0,goal:0,days:0};weekOrder.push(wkKey);}
+    weekAmts[wkKey].cAmt += dayMap[dt].cAmt;
+    weekAmts[wkKey].rAmt += dayMap[dt].rAmt;
+    weekAmts[wkKey].goal += getDailyGoal(dt,monthlyGoal);
+    weekAmts[wkKey].days++;
+  });
+
+  days.forEach(dt=>{
+    const wk = getWeekOfMonth(dt);
+    const ym = dt.substring(0,7);
+    const wkKey = ym+'-W'+wk;
+
+    // 주차 헤더 (처음 등장 시)
+    if(wkKey !== curWeek){
+      curWeek = wkKey;
+      const wa = weekAmts[wkKey];
+      const wRetP = wa.cAmt>0?Math.round(wa.rAmt/wa.cAmt*100):0;
+      const wAchv = wa.goal>0?Math.round(wa.cAmt/wa.goal*100):0;
+      const colSpan = 1 + brands.length + channels.length + 1 + (monthlyGoal?1:0);
+      html+=`<tr><td colspan="${colSpan}" class="week-hd">
+        <div style="display:flex;align-items:center;gap:0">
+          <span style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;letter-spacing:1.5px;color:var(--ink)">${ym.substring(5)}월 ${wk}주차</span>
+          <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--ink4);margin-left:8px">${wa.days}일</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--ink)">₩${won(wa.cAmt)}</span>
+          ${monthlyGoal?`<span style="font-family:'Space Mono',monospace;font-size:10px;color:${wAchv>=100?'var(--green)':wAchv>=80?'var(--amber)':'var(--red)'};font-weight:700">${wAchv}% 달성</span>`:''}
+          <span style="font-family:'Space Mono',monospace;font-size:9px;color:${wRetP>=30?'var(--red)':wRetP>=15?'var(--amber)':'var(--green)'}">반품 ${wRetP}%</span>
+        </div>
+      </td></tr>`;
+    }
+
+    const dm = dayMap[dt];
+    const dow = ['일','월','화','수','목','금','토'][new Date(dt).getDay()];
+    const isWknd = dow==='일'||dow==='토';
+    const rowAmts = [...brands.map(b=>dm.brands[b]?.cAmt||0), ...channels.map(ch=>dm.channels[ch]?.cAmt||0)];
+    const rowMax = Math.max(...rowAmts, 1);
+    const retP = dm.cAmt>0?Math.round(dm.rAmt/dm.cAmt*100):0;
+    const dayGoal = getDailyGoal(dt, monthlyGoal);
+    const dayAchv = dayGoal>0?Math.round(dm.cAmt/dayGoal*100):null;
+
+    html+=`<tr style="cursor:pointer" onclick="openDailyPanel('${dt}')">
+      <td style="${isWknd?'color:var(--red)':''};position:sticky;left:0;z-index:5;background:var(--paper2)">
+        ${dt.slice(5).replace('-','/')}(${dow})
+      </td>`;
+
+    // 목표 달성률 셀
+    if(monthlyGoal){
+      const ac = dayAchv!==null?dayAchv:null;
+      const barColor = ac===null?'var(--line)':ac>=100?'var(--green)':ac>=80?'var(--amber)':'var(--red)';
+      html+=`<td style="background:var(--paper3);min-width:70px;text-align:center">
+        ${ac!==null?`<div style="font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:${barColor}">${ac}%</div>
+        <div class="goal-bar"><div class="goal-fill" style="width:${Math.min(ac,100)}%;background:${barColor}"></div></div>
+        <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--ink3)">₩${won(dayGoal)}</div>`
+        :'<span style="color:var(--ink4);font-size:9px">주말</span>'}
+      </td>`;
+    }
+
+    // 브랜드 셀 (파란 계열)
+    brands.forEach((b,i)=>{
+      const v = dm.brands[b]||{cAmt:0,rAmt:0};
+      const rel = v.cAmt/rowMax;
+      const alpha = v.cAmt>0?(rel*0.65+0.06).toFixed(2):'0';
+      const dk = rel>0.5;
+      const retPb = v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0;
+      const mc = dk?'#fff':'#111';
+      const rc2 = retPb>=30?(dk?'#ff9999':'#c0392b'):retPb>=15?(dk?'#ffcc88':'#92400e'):(dk?'#99ffcc':'#00695c');
+      html+=`<td class="${i===0?'b-first':''}" style="background:rgba(26,35,126,${alpha})" 
+             onclick="event.stopPropagation();openDailyPanel('${dt}')">
+        ${v.cAmt>0?`<div class="cv" style="color:${mc}">₩${won(v.cAmt)}</div>
+        <div class="rv" style="color:${rc2}">${retPb}%</div>`:'<span style="color:var(--ink4);font-size:9px">—</span>'}
+      </td>`;
+    });
+
+    // 채널 셀 (초록 계열)
+    channels.forEach((ch,i)=>{
+      const v = dm.channels[ch]||{cAmt:0,rAmt:0};
+      const rel = v.cAmt/rowMax;
+      const alpha = v.cAmt>0?(rel*0.65+0.06).toFixed(2):'0';
+      const dk = rel>0.5;
+      const retPc = v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0;
+      const mc = dk?'#fff':'#111';
+      const rc2 = retPc>=30?(dk?'#ff9999':'#c0392b'):retPc>=15?(dk?'#ffcc88':'#92400e'):(dk?'#99ffcc':'#00695c');
+      html+=`<td class="${i===0?'c-first':''}" style="background:rgba(0,105,92,${alpha})"
+             onclick="event.stopPropagation();openDailyPanel('${dt}')">
+        ${v.cAmt>0?`<div class="cv" style="color:${mc}">₩${won(v.cAmt)}</div>
+        <div class="rv" style="color:${rc2}">${retPc}%</div>`:'<span style="color:var(--ink4);font-size:9px">—</span>'}
+      </td>`;
+    });
+
+    html+=`<td class="tc" style="position:sticky;right:0;z-index:4">
+      ₩${won(dm.cAmt)}
+      <div class="rv ${rc(retP)}">${retP}%</div>
+      ${dayAchv!==null?`<div style="font-family:'Space Mono',monospace;font-size:8px;color:${dayAchv>=100?'var(--green)':dayAchv>=80?'var(--amber)':'var(--red)'}">${dayAchv}%달성</div>`:''}
+    </td></tr>`;
+  });
+
+  // ── 합계 행 ──
+  const colSpanTotal = 1 + brands.length + channels.length + 1 + (monthlyGoal?1:0);
+  html+=`<tr class="sr">
+    <td style="position:sticky;left:0;background:var(--paper3)">합계 (${days.length}일)</td>`;
+  if(monthlyGoal){
+    const totalAchv = totGoal>0?Math.round(totC/totGoal*100):0;
+    const barColor = totalAchv>=100?'var(--green)':totalAchv>=80?'var(--amber)':'var(--red)';
+    html+=`<td style="background:var(--paper3);text-align:center">
+      <div style="font-family:'Space Mono',monospace;font-weight:700;color:${barColor}">${totalAchv}%</div>
+      <div class="goal-bar"><div class="goal-fill" style="width:${Math.min(totalAchv,100)}%;background:${barColor}"></div></div>
+    </td>`;
+  }
+  brands.forEach((b,i)=>{
+    const bTotal = days.reduce((s,dt)=>s+(dayMap[dt].brands[b]?.cAmt||0),0);
+    const bRet   = days.reduce((s,dt)=>s+(dayMap[dt].brands[b]?.rAmt||0),0);
+    const bRetP  = bTotal>0?Math.round(bRet/bTotal*100):0;
+    const bShare = totC>0?Math.round(bTotal/totC*100):0;
+    html+=`<td class="${i===0?'b-first':''} tc">₩${won(bTotal)}<div class="rv ${rc(bRetP)}">${bShare}% · ${bRetP}%반품</div></td>`;
+  });
+  channels.forEach((ch,i)=>{
+    const cTotal = days.reduce((s,dt)=>s+(dayMap[dt].channels[ch]?.cAmt||0),0);
+    const cRet   = days.reduce((s,dt)=>s+(dayMap[dt].channels[ch]?.rAmt||0),0);
+    const cRetP  = cTotal>0?Math.round(cRet/cTotal*100):0;
+    const cShare = totC>0?Math.round(cTotal/totC*100):0;
+    html+=`<td class="${i===0?'c-first':''} tc">₩${won(cTotal)}<div class="rv ${rc(cRetP)}">${cShare}% · ${cRetP}%반품</div></td>`;
+  });
+  const totRetP = totC>0?Math.round(totR/totC*100):0;
+  html+=`<td class="tc" style="position:sticky;right:0">₩${won(totC)}<div class="rv ${rc(totRetP)}">${totRetP}%</div></td>`;
+  html+=`</tr></tbody></table></div>`;
+
+  // 범례
+  html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-top:1px solid var(--line);background:var(--paper2);font-family:'Space Mono',monospace;font-size:9px;color:var(--ink3);flex-wrap:wrap">
+    <span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:12px;height:10px;border-radius:1px;background:rgba(26,35,126,0.7)"></span>브랜드</span>
+    <span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:12px;height:10px;border-radius:1px;background:rgba(0,105,92,0.7)"></span>채널</span>
+    <span style="margin-left:6px">색 농도 = 매출 크기</span>
+    <span style="color:var(--red)">빨강 = 반품 30%↑</span>
+    <span style="color:var(--amber)">주황 = 15%↑</span>
+    <span style="color:var(--green)">초록 = 정상</span>
+    <span style="margin-left:auto">행 클릭 → 하단 상세</span>
+  </div>`;
+
+  el.innerHTML = html;
+
+  // 하단 패널 초기 숨김
+  id('dailyDetailPanel').style.display='none';
+}
+
+// ── 하단 상세 패널 (팝업 대신) ──
+function openDailyPanel(dt){
+  const panel = id('dailyDetailPanel');
+  const d = DB.filter(r=>r.date===dt&&(curGroup==='all'||r.group===curGroup));
+  if(!d.length){panel.style.display='none';return;}
+
+  const dow = ['일','월','화','수','목','금','토'][new Date(dt).getDay()];
+  const cAmt = d.filter(r=>r.status==='complete').reduce((s,r)=>s+r.completeAmt,0);
+  const rAmt = d.filter(r=>r.status==='return').reduce((s,r)=>s+r.retAmt,0);
+  const retP = cAmt>0?Math.round(rAmt/cAmt*100):0;
+  const monthlyGoal = Number(document.getElementById('monthlyGoal').value)||0;
+  const dayGoal = getDailyGoal(dt, monthlyGoal);
+  const achv = dayGoal>0?Math.round(cAmt/dayGoal*100):null;
+
+  // 브랜드 집계
+  const bMap={}, chMap={};
+  d.forEach(r=>{
+    const b=r.brand||'미분류', ch=r.channel||'미분류';
+    if(!bMap[b]) bMap[b]={cAmt:0,rAmt:0,group:r.group};
+    if(!chMap[ch]) chMap[ch]={cAmt:0,rAmt:0};
+    if(r.status==='complete'){bMap[b].cAmt+=r.completeAmt;chMap[ch].cAmt+=r.completeAmt;}
+    if(r.status==='return'){bMap[b].rAmt+=r.retAmt;chMap[ch].rAmt+=r.retAmt;}
+  });
+  const bSorted = Object.entries(bMap).sort((a,b2)=>b2[1].cAmt-a[1].cAmt);
+  const chSorted = Object.entries(chMap).sort((a,b2)=>b2[1].cAmt-a[1].cAmt);
+
+  const achvColor = achv===null?'var(--ink3)':achv>=100?'var(--green)':achv>=80?'var(--amber)':'var(--red)';
+
+  panel.style.display='block';
+  panel.innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--paper3);border-bottom:1px solid var(--line);flex-shrink:0;position:sticky;top:0;z-index:10">
+      <span style="font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px">${dt} (${dow})</span>
+      <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--green)">₩${won(cAmt)}</span>
+      <span style="font-family:'Space Mono',monospace;font-size:11px;color:${rc(retP)==='rh'?'var(--red)':rc(retP)==='rm'?'var(--amber)':'var(--green)'}">반품 ${retP}%</span>
+      ${achv!==null?`<span style="font-family:'Space Mono',monospace;font-size:11px;color:${achvColor}">목표 ${achv}% 달성</span>`:''}
+      <button onclick="id('dailyDetailPanel').style.display='none'" style="margin-left:auto;background:none;border:none;font-size:16px;cursor:pointer;color:var(--ink3)">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--line)">
+      <!-- 브랜드 -->
+      <div style="border-right:1.5px solid var(--line)">
+        <div style="padding:6px 14px;background:#1a237e10;border-bottom:1px solid var(--line);font-family:'Oswald',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:#1a237e">◈ 브랜드별</div>
+        ${bSorted.map(([b,v])=>{
+          const p=v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0;
+          const share=cAmt>0?Math.round(v.cAmt/cAmt*100):0;
+          const barW=Math.round(v.cAmt/Math.max(...bSorted.map(e=>e[1].cAmt),1)*100);
+          return `<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line)">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;font-weight:600;color:var(--ink)">${b}</div>
+              <div style="height:3px;background:var(--line);border-radius:1px;margin-top:3px;overflow:hidden">
+                <div style="height:100%;width:${barW}%;background:#1a237e;border-radius:1px"></div>
+              </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-family:'Space Mono',monospace;font-size:11px">₩${won(v.cAmt)}</div>
+              <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--ink3)">${share}% · <span style="color:${p>=30?'var(--red)':p>=15?'var(--amber)':'var(--green)'}">${p}%반품</span></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      <!-- 채널 -->
+      <div>
+        <div style="padding:6px 14px;background:#00695c10;border-bottom:1px solid var(--line);font-family:'Oswald',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;color:#00695c">◈ 채널별</div>
+        ${chSorted.map(([ch,v])=>{
+          const p=v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0;
+          const share=cAmt>0?Math.round(v.cAmt/cAmt*100):0;
+          const barW=Math.round(v.cAmt/Math.max(...chSorted.map(e=>e[1].cAmt),1)*100);
+          return `<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line)">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ch}</div>
+              <div style="height:3px;background:var(--line);border-radius:1px;margin-top:3px;overflow:hidden">
+                <div style="height:100%;width:${barW}%;background:#00695c;border-radius:1px"></div>
+              </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-family:'Space Mono',monospace;font-size:11px">₩${won(v.cAmt)}</div>
+              <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--ink3)">${share}% · <span style="color:${p>=30?'var(--red)':p>=15?'var(--amber)':'var(--green)'}">${p}%반품</span></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+  // 패널 스크롤 인투 뷰
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+
+// ════════════════════════════
 // CHART
 // ════════════════════════════
 function renderChart(){
@@ -912,10 +1403,11 @@ function setGroup(g,el){
 function setNav(v,el){
   document.querySelectorAll('.nav').forEach(e=>e.classList.remove('on'));
   el.classList.add('on');
-  const titles={overview:'전체 현황',heatmap:'히트맵 분석',monthly:'월별 추이',returns:'반품 분석'};
-  id('viewTitle').textContent=titles[v];
+  const titles={overview:'전체 현황',heatmap:'히트맵 분석',monthly:'월별 추이',returns:'반품 분석',daily:'일별 실적'};
+  id('viewTitle').textContent=titles[v]||'전체 현황';
   if(v==='heatmap') setTab('heatmap',null);
   else if(v==='monthly') setTab('monthly',null);
+  else if(v==='daily') setTab('daily',null);
   else setTab('brand',null);
 }
 
@@ -925,12 +1417,13 @@ function setTab(t,el){
   document.querySelectorAll('.tc').forEach(e=>e.classList.remove('on'));
   if(el) el.classList.add('on');
   else{document.querySelectorAll('.tab').forEach(e=>{
-    if((t==='brand'&&e.textContent.includes('브랜드'))||(t==='heatmap'&&e.textContent.includes('히트맵'))||(t==='monthly'&&e.textContent.includes('월별')))
+    if((t==='brand'&&e.textContent.includes('브랜드'))||(t==='heatmap'&&e.textContent.includes('히트맵'))||(t==='monthly'&&e.textContent.includes('월별'))||(t==='daily'&&e.textContent.includes('일별')))
       e.classList.add('on');
   })}
   id('tc-'+t)?.classList.add('on');
   if(t==='heatmap'&&DB.length) renderHeatmap();
   if(t==='monthly'&&DB.length) renderMonthlyTable();
+  if(t==='daily'&&DB.length){initHmDates();renderDailyTable();}
 }
 
 // ════════════════════════════
@@ -997,6 +1490,7 @@ function renderAll(full=true){
   renderTicker();
   if(curTab==='heatmap') renderHeatmap();
   if(curTab==='monthly') renderMonthlyTable();
+  if(curTab==='daily'){initHmDates();renderDailyTable();}
 }
 
 // CLOCK
@@ -1015,11 +1509,12 @@ if(hasData&&DB.length){
   renderAll(true);
   showToast('✓ 저장된 데이터 로드 · '+DB.length.toLocaleString()+'건');
 } else {
-  // 내장 데이터로 초기화
+  // 내장 시드 데이터로 초기화 → 업로드창 없이 바로 대시보드 표시
   DB = SEED_DATA.map(seedToRecord);
   renderAll(true);
-  // 업로드 오버레이 안 띄움 — 그냥 대시보드 바로 표시
+  showToast('1월 기본 데이터 로드 · '+DB.length.toLocaleString()+'건 · ↑ 데이터 추가로 월별 파일 업로드 가능');
 }
+loadGoal();
 updateClock();
 setInterval(updateClock,1000);
 </script>
