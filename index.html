@@ -417,6 +417,11 @@ html,body{height:100%;overflow:hidden;font-family:'Noto Sans KR',sans-serif;back
     </div>
     <input type="file" id="fileInput" accept=".xlsx,.xls" multiple style="display:none" onchange="handleFiles(this.files)">
     <button class="up-btn" onclick="document.getElementById('fileInput').click()">파일 선택</button>
+    <div style="font-family:'Space Mono',monospace;font-size:9px;color:#ffffff40;margin-top:8px;line-height:1.9;text-align:center">
+      ✓ 리오벨 매출파일 (년/월/일 컬럼 기준)<br>
+      ✓ 리오벨 외 매출파일 (사방넷 주문서확인처리_출고)<br>
+      <span style="color:#ffffff25">— 양식 자동감지 · 같은 날짜 재업로드 시 자동 교체</span>
+    </div>
   </div>
   <div class="up-progress">
     <div class="pb-wrap" id="pbWrap"><div class="pb-fill" id="pbFill"></div></div>
@@ -451,12 +456,72 @@ const COL = {
   retQty:31,     // 반품수량
 };
 
+// 사방넷 주문서 컬럼 (20260316_주문서확인처리_출고 양식)
+// ── 리오벨 외 파일 (사방넷 주문서확인처리_출고) 컬럼 정의 ──
+// 리오벨 외 파일: 브랜드명 C열(2번)
+// 리오벨 파일:    브랜드명 S열(18번) ← COL.brand=18 그대로 유지
+const COL_SB = {
+  channel:1,     // 쇼핑몰명(1)
+  brand:2,       // 브랜드명 (C열 = 인덱스 2)
+  status:3,      // 주문구분 ('주문(완료)'|'반품완료' 등)
+  orderDate:4,   // 주문일시 (YYYY-MM-DD HH:MM)
+  sabangCode:5,  // 상품코드(사방넷)
+  orderIdShop:6, // 주문번호(쇼핑몰)
+  orderId:7,     // 주문번호(사방넷)
+  productCode:8, // 자체상품코드 ← 상품별 매출순위용
+  product:9,     // 상품명(확정)
+  option:10,     // 옵션(수집)
+  qty:11,        // 수량
+  price:23,      // 판매가(수집)
+  supplyPrice:24,// 공급단가
+  payAmt:25,     // 결제금액
+};
+
+// 파일 양식 자동 감지
+function detectFormat(headers){
+  if(!headers) return 'riobell';
+  const h0 = String(headers[0]||'').trim();
+  const h1 = String(headers[1]||'').trim();
+  const h2 = String(headers[2]||'').trim();
+  const h4 = String(headers[4]||'').trim();
+
+  // 리오벨 파일: 0열='년', 1열='월', 2열='일'
+  if(h0==='년' && h1==='월' && h2==='일') return 'riobell';
+
+  // 리오벨 외 파일(사방넷 주문서): No. + 쇼핑몰명 + 주문일시
+  if(h0==='No.' && h1.includes('쇼핑몰')) return 'sabangnet';
+  if(h4.includes('주문일시')) return 'sabangnet';
+
+  return 'riobell'; // 기본값
+}
+
 // 주문상태 → 내부 분류
 function classifyStatus(s){
   const t=String(s||'').trim();
   if(t.includes('반품')) return 'return';
   if(t.includes('취소')) return 'cancel';
   return 'complete';
+}
+
+// 브랜드 → 구분(그룹) 추정
+function inferGroup(brand){
+  const b = String(brand||'').trim().toLowerCase();
+  // ── 라성 ──
+  if(b==='리오벨')   return '라성';
+  if(b.includes('헤니트')) return '라성';   // 헤니트, 헤니트2
+  if(b==='드베터')   return '라성';
+  // ── 한아물산 ──
+  if(b==='마리본'||b==='maribon')   return '한아물산';
+  if(b==='ennittude'||b==='엔니튜드') return '한아물산';
+  if(b==='르뎁트')   return '한아물산';
+  if(b==='막스스튜디오') return '한아물산';
+  if(b==='제이슨우')  return '한아물산';
+  // ── 신원 ──
+  if(b==='지이크')   return '신원';
+  if(b==='베스띠벨리') return '신원';
+  if(b==='씨')      return '신원';
+  if(b==='파렌하이트') return '신원';
+  return '기타';
 }
 
 // 브랜드그룹 오버라이드 (구분 컬럼 우선, 없으면 기타)
@@ -520,24 +585,41 @@ async function handleFiles(files){
 
   document.getElementById('pbWrap').classList.add('show');
   document.getElementById('upClose').style.display='none';
-  let total=0;
+  let total=0, fmtLog=[];
 
   for(let i=0;i<arr.length;i++){
-    setPb(Math.round(i/arr.length*90), `파일 ${i+1}/${arr.length} 파싱 중... ${arr[i].name}`);
+    setPb(Math.round(i/arr.length*85), `파일 ${i+1}/${arr.length} 파싱 중... ${arr[i].name}`);
     const parsed = await parseXLSX(arr[i]);
-    DB.push(...parsed);
-    total+=parsed.length;
+    total += parsed.length;
+
+    if(parsed.length>0){
+      // 파일 양식 감지 로그
+      const fmt = parsed[0]._fmt || '리오벨';
+      fmtLog.push(`${arr[i].name.substring(0,15)}: ${parsed.length}건 (${fmt})`);
+
+      // 날짜 기준 덮어쓰기: 해당 파일에 포함된 날짜 범위의 기존 데이터 제거
+      const newDates = new Set(parsed.map(r=>r.date));
+      const before = DB.length;
+      DB = DB.filter(r => !newDates.has(r.date));
+      const removed = before - DB.length;
+      if(removed>0) fmtLog.push(`  ↳ 기존 ${removed}건 교체`);
+
+      DB.push(...parsed);
+    }
   }
 
-  // 주문번호 기준 중복 제거
+  // 주문번호 기준 중복 제거 (같은 날짜 내 중복)
   const seen=new Set();
-  const before=DB.length;
+  const beforeDupe=DB.length;
   DB=DB.filter(r=>{
     if(!r.orderId) return true;
     if(seen.has(r.orderId)) return false;
     seen.add(r.orderId); return true;
   });
-  const dupes=before-DB.length;
+  const dupes=beforeDupe-DB.length;
+
+  // 날짜순 정렬
+  DB.sort((a,b)=>a.date.localeCompare(b.date));
 
   setPb(100,'저장 중...');
   saveDB();
@@ -548,7 +630,10 @@ async function handleFiles(files){
     setPb(0,'');
     hideUpload();
     renderAll(true);
-    showToast(`✓ ${total.toLocaleString()}건 파싱\nDB: ${DB.length.toLocaleString()}건 (중복제거: ${dupes}건)`);
+    const msg = `✓ ${total.toLocaleString()}건 파싱 · DB ${DB.length.toLocaleString()}건`
+      + (dupes>0?` · 중복제거 ${dupes}건`:'');
+    showToast(msg);
+    console.log('[업로드]', fmtLog.join('\n'));
   },500);
 }
 
@@ -564,46 +649,14 @@ function parseXLSX(file){
       try{
         const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
         const ws=wb.Sheets[wb.SheetNames[0]];
-        // header:1 → 배열 배열
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
-        const result=[];
+        if(rows.length<2){resolve([]);return;}
 
-        for(let i=1;i<rows.length;i++){
-          const r=rows[i];
-          // 날짜: 년[0] 월[1] 일[2] 조합
-          const yr=r[COL.year], mo=r[COL.month], dy=r[COL.day];
-          if(!yr||!mo||!dy) continue;
-          const date=`${yr}-${String(mo).padStart(2,'0')}-${String(dy).padStart(2,'0')}`;
-          const ym=`${yr}-${String(mo).padStart(2,'0')}`;
+        const fmt=detectFormat(rows[0]);
+        const result = fmt==='sabangnet'
+          ? parseSabangnet(rows)
+          : parseRiobell(rows);
 
-          const status=classifyStatus(r[COL.status]);
-          const group=String(r[COL.group]||'기타').trim();
-          const brand=String(r[COL.brand]||'').trim();
-          const channel=String(r[COL.channel]||'').trim();
-          const orderId=String(r[COL.orderId]||'');
-
-          if(status==='return'){
-            // 반품완료 행: 판매가 없음, 반품금액[30] 사용
-            const retAmt=parseFloat(String(r[COL.retAmt]||0).replace(/[,\s]/g,''))||0;
-            const retQty=parseInt(r[COL.retQty])||1;
-            if(retAmt>0){
-              result.push({date,ym,group,brand,channel,orderId,
-                completeAmt:0,completeQty:0,
-                retAmt,retQty,
-                status:'return'});
-            }
-          } else {
-            // 주문완료 행: 판매가[22] × 수량[23]
-            const price=parseFloat(String(r[COL.price]||0).replace(/[,\s₩]/g,''))||0;
-            const qty=parseInt(r[COL.qty])||1;
-            if(price>0){
-              result.push({date,ym,group,brand,channel,orderId,
-                completeAmt:price*qty,completeQty:qty,
-                retAmt:0,retQty:0,
-                status:'complete'});
-            }
-          }
-        }
         resolve(result);
       }catch(err){
         console.error(err);
@@ -613,6 +666,71 @@ function parseXLSX(file){
     };
     reader.readAsArrayBuffer(file);
   });
+}
+
+// ── 리오벨 매출 파일 파서 ──
+function parseRiobell(rows){
+  const result=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    const yr=r[COL.year], mo=r[COL.month], dy=r[COL.day];
+    if(!yr||!mo||!dy) continue;
+    const date=`${yr}-${String(mo).padStart(2,'0')}-${String(dy).padStart(2,'0')}`;
+    const ym=`${yr}-${String(mo).padStart(2,'0')}`;
+    const status=classifyStatus(r[COL.status]);
+    const group=String(r[COL.group]||'기타').trim();
+    const brand=String(r[COL.brand]||'').trim();
+    const channel=String(r[COL.channel]||'').trim();
+    const orderId=String(r[COL.orderId]||'');
+    if(status==='return'){
+      const retAmt=parseFloat(String(r[COL.retAmt]||0).replace(/[,\s]/g,''))||0;
+      const retQty=parseInt(r[COL.retQty])||1;
+      if(retAmt>0) result.push({date,ym,group,brand,channel,orderId,
+        completeAmt:0,completeQty:0,retAmt,retQty,status:'return'});
+    } else {
+      const price=parseFloat(String(r[COL.price]||0).replace(/[,\s₩]/g,''))||0;
+      const qty=parseInt(r[COL.qty])||1;
+      if(price>0) result.push({date,ym,group,brand,channel,orderId,
+        productCode, product:String(r[COL_SB.product]||'').trim(),
+        completeAmt:price*qty,completeQty:qty,retAmt:0,retQty:0,status:'complete'});
+    }
+  }
+  return result;
+}
+
+// ── 사방넷 주문서 파서 ──
+function parseSabangnet(rows){
+  const result=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    // 날짜: 주문일시[4] "YYYY-MM-DD HH:MM" 앞 10자
+    const dateRaw=String(r[COL_SB.orderDate]||'').trim();
+    if(!dateRaw||dateRaw.length<10) continue;
+    const date=dateRaw.substring(0,10);
+    const ym=date.substring(0,7);
+
+    const status=classifyStatus(r[COL_SB.status]);
+    const brand=String(r[COL_SB.brand]||'').trim();
+    const channel=String(r[COL_SB.channel]||'').trim();
+    const productCode=String(r[COL_SB.productCode]||'').trim();
+    const orderId=String(r[COL_SB.orderId]||'');
+    const group=inferGroup(brand);
+
+    if(status==='return'){
+      const retAmt=parseFloat(String(r[COL_SB.retAmt]||0).replace(/[,\s₩]/g,''))||0;
+      if(retAmt>0) result.push({date,ym,group,brand,channel,orderId,
+        completeAmt:0,completeQty:0,retAmt,retQty:1,status:'return'});
+    } else {
+      const price=parseFloat(String(r[COL_SB.price]||0).replace(/[,\s₩]/g,''))||0;
+      const qty=parseInt(r[COL_SB.qty])||1;
+      const productCode=String(r[20]||'').trim();
+        const product=String(r[19]||'').trim();
+        if(price>0) result.push({date,ym,group,brand,channel,orderId,
+        productCode, product,
+        completeAmt:price*qty,completeQty:qty,retAmt:0,retQty:0,status:'complete'});
+    }
+  }
+  return result;
 }
 
 // ════════════════════════════
