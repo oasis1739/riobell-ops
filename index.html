@@ -3,37 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Han-A OPS v4.3 (Pro Dashboard)</title>
+<title>Han-A OPS v4.4 (Pro Dashboard)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Oswald:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-main: #F8F9FA;
-    --bg-card: #FFFFFF;
-    --border: #E9ECEF;
-    --text-main: #212529;
-    --text-sub: #6C757D;
-    --text-light: #ADB5BD;
-    --primary: #2563EB;
-    --primary-light: #DBEAFE;
-    --danger: #DC2626;
-    --danger-light: #FEE2E2;
-    --success: #16A34A;
-    --warning: #D97706;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-    --radius: 12px;
+    --bg-main: #F8F9FA; --bg-card: #FFFFFF; --border: #E9ECEF;
+    --text-main: #212529; --text-sub: #6C757D; --text-light: #ADB5BD;
+    --primary: #2563EB; --primary-light: #DBEAFE;
+    --danger: #DC2626; --danger-light: #FEE2E2;
+    --success: #16A34A; --warning: #D97706;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.04); --radius: 12px;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg-main); color: var(--text-main); font-size: 13px; min-height: 100vh; }
   
-  /* Utilities */
   .text-primary { color: var(--primary) !important; }
   .text-danger { color: var(--danger) !important; }
   .text-success { color: var(--success) !important; }
   .text-warning { color: var(--warning) !important; }
-  .font-mono { font-family: 'DM Mono', monospace; }
   
   /* Top Nav */
   .topnav { display: flex; align-items: center; background: var(--bg-card); padding: 0 28px; height: 64px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
@@ -43,18 +33,21 @@
   .tab { padding: 0 16px; font-size: 14px; font-weight: 500; color: var(--text-sub); border: none; background: transparent; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; }
   .tab:hover { color: var(--text-main); }
   .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
-  .topnav-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .topnav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  
+  /* Filters & Buttons */
   .filter-box { display: flex; align-items: center; gap: 8px; background: var(--bg-main); padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); }
+  .btn-quick { background: transparent; border: none; font-size: 12px; color: var(--text-sub); cursor: pointer; padding: 4px 8px; border-radius: 4px; font-weight: 600; transition: 0.2s;}
+  .btn-quick:hover { color: var(--primary); background: var(--bg-card); box-shadow: 0 1px 3px rgba(0,0,0,0.05);}
   .btn-upload { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: 0.2s;}
   .btn-upload:hover { background: #1D4ED8; }
   .btn-outline { background: white; border: 1px solid var(--border); padding: 8px 16px; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 13px; transition: 0.2s; }
   .btn-outline:hover { background: var(--bg-main); }
   .date-input { border: none; background: transparent; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text-main); outline: none; cursor: pointer; font-weight: 500;}
   
-  /* Dashboard Layout */
   .container { padding: 24px 28px; max-width: 1600px; margin: 0 auto; }
   
-  /* Group Tabs (Segmented Control) */
+  /* Group Tabs */
   .group-tabs { display: flex; gap: 10px; margin-bottom: 24px; }
   .g-tab { padding: 8px 20px; border-radius: 24px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-sub); font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
   .g-tab:hover { border-color: var(--primary); color: var(--primary); }
@@ -65,7 +58,7 @@
   
   /* KPI Row */
   .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; margin-bottom: 28px; }
-  .kpi-title { font-size: 13px; color: var(--text-sub); font-weight: 500; margin-bottom: 10px; }
+  .kpi-title { font-size: 13px; color: var(--text-sub); font-weight: 500; margin-bottom: 10px; display:flex; justify-content:space-between;}
   .kpi-value { font-size: 30px; font-weight: 700; font-family: 'Oswald', sans-serif; line-height: 1.2; margin-bottom: 10px; }
   .kpi-sub { font-size: 12px; color: var(--text-sub); display: flex; align-items: center; gap: 6px; }
   .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
@@ -97,13 +90,13 @@
   .data-table th:first-child { text-align: left; position: sticky; left: 0; z-index: 11;}
   .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: right; }
   .data-table td:first-child { text-align: left; font-weight: 500; position: sticky; left: 0; background: var(--bg-card); z-index: 10; border-right: 2px solid var(--border); }
+  .product-cell { max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
   
   /* Progress Bar */
   .goal-progress { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin: 12px 0; }
   .goal-fill { height: 100%; background: var(--warning); transition: width 0.5s ease; }
   .goal-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-sub); font-family: 'DM Mono', monospace; }
 
-  /* Utilities & Overlays */
   .page { display: none; }
   .page.active { display: block; }
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
@@ -116,14 +109,19 @@
 <body>
 
 <header class="topnav">
-  <div class="logo">Han<em>-</em>A <span style="font-size:12px; color:var(--text-light); font-weight:400; font-family:'Noto Sans KR'">v4.3 Pro</span></div>
+  <div class="logo">Han<em>-</em>A <span style="font-size:12px; color:var(--text-light); font-weight:400; font-family:'Noto Sans KR'">v4.4 Pro</span></div>
   <div class="tabs">
     <button class="tab active" onclick="switchTab('overview')">전체 현황</button>
     <button class="tab" onclick="switchTab('monthly')">월별 추이</button>
-    <button class="tab" onclick="switchTab('daily')">일별 / 다차원 실적</button>
+    <button class="tab" onclick="switchTab('daily')">다차원 실적 (상품별)</button>
     <button class="tab" onclick="switchTab('heatmap')">히트맵</button>
   </div>
   <div class="topnav-right">
+    <div class="filter-box" style="padding: 4px;">
+      <button class="btn-quick" onclick="setQuickDate('thisMonth')">당월</button>
+      <button class="btn-quick" onclick="setQuickDate('lastMonth')">전월</button>
+      <button class="btn-quick" onclick="setQuickDate('thisYear')">올해</button>
+    </div>
     <div class="filter-box">
       <input type="date" id="dateFrom" class="date-input" onchange="renderAll()">
       <span style="color:var(--text-light)">~</span>
@@ -150,7 +148,10 @@
     <div class="card" style="margin-bottom:0;"><div class="kpi-title">반품 금액</div><div class="kpi-value text-danger" id="kpi-return">₩0</div><div class="kpi-sub" id="kpi-return-sub">0건 <span class="badge badge-danger" id="kpi-return-rate">0%</span></div></div>
     <div class="card" style="margin-bottom:0;"><div class="kpi-title">총 주문건수</div><div class="kpi-value" id="kpi-total-cnt">0</div><div class="kpi-sub">조회 기간 내 전체</div></div>
     <div class="card" style="margin-bottom:0; border-left:4px solid var(--warning);">
-      <div class="kpi-title">월 목표 설정 <input type="number" id="goalInput" onchange="updateGoal()" placeholder="예: 400000000" style="width:100px; padding:2px 6px; border:1px solid var(--border); border-radius:4px; margin-left:8px; font-size:11px;"></div>
+      <div class="kpi-title">
+        <span id="kpi-goal-month-label">월 목표</span> 
+        <input type="number" id="goalInput" onchange="updateGoal()" placeholder="목표 입력" style="width:100px; padding:2px 6px; border:1px solid var(--border); border-radius:4px; font-size:11px;">
+      </div>
       <div class="kpi-value text-warning" id="kpi-goal-pct">0%</div>
       <div class="goal-progress"><div class="goal-fill" id="kpi-goal-fill" style="width: 0%"></div></div>
       <div class="goal-labels"><span id="kpi-goal-achieved">달성 ₩0</span><span id="kpi-goal-target">목표 ₩0</span></div>
@@ -191,12 +192,18 @@
   <div id="page-daily" class="page">
     <div class="card">
       <div class="card-title">
-        다차원 실적 테이블
+        다차원 실적 테이블 (피벗)
         <select id="pivotSelect" class="btn-outline" onchange="renderDailyTable()" style="margin-left:auto;">
-          <option value="date_brand">날짜 × 브랜드 (기본)</option>
-          <option value="date_channel">날짜 × 채널 추이</option>
-          <option value="brand_channel">브랜드 × 채널 비중</option>
-          <option value="channel_brand">채널 × 브랜드 비중</option>
+          <optgroup label="상품 분석">
+            <option value="product_channel">상품명 × 채널 매출</option>
+            <option value="product_brand">상품명 × 브랜드 매출</option>
+          </optgroup>
+          <optgroup label="일별 / 브랜드 분석">
+            <option value="date_brand">날짜 × 브랜드 (기본)</option>
+            <option value="date_channel">날짜 × 채널 추이</option>
+            <option value="brand_channel">브랜드 × 채널 비중</option>
+            <option value="channel_brand">채널 × 브랜드 비중</option>
+          </optgroup>
         </select>
       </div>
       <div class="table-wrap" id="dailyTableWrap"><div style="padding:60px; text-align:center; color:var(--text-light)">데이터를 로드 중이거나 없습니다.</div></div>
@@ -219,7 +226,7 @@
     <div style="border: 2px dashed var(--border); padding: 50px; cursor: pointer; background: var(--bg-main); border-radius: 8px;" onclick="document.getElementById('fileInput').click()">
       <div style="font-size: 40px; margin-bottom: 16px;">📂</div><div style="font-weight:600;">클릭하여 엑셀 파일 선택</div>
     </div>
-    <div id="pbText" style="margin-top:16px; font-size:13px; color:var(--primary); font-weight:600;"></div>
+    <div id="pbText" style="margin-top:16px; font-size:13px; color:var(--primary); font-weight:600;">⚠️ 기존 데이터가 있다면 꼭 '초기화' 후 업로드해주세요!</div>
     <button class="btn-outline" style="margin-top:32px; width:100%;" onclick="document.getElementById('uploadModal').classList.remove('show')">닫기</button>
   </div>
 </div>
@@ -229,13 +236,14 @@
 let DB = [];
 let chartInstance = null;
 let curTab = 'overview';
-let curGroup = 'all'; // 탭 필터용 전역 변수
+let curGroup = 'all'; 
+let monthlyGoals = {}; // 월별 목표 저장 객체
 
 function esc(str) { return String(str||'').replace(/[&<>"']/g, m => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[m])); }
 function won(n) { return Math.round(n).toLocaleString(); }
 function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
 
-// 1. 브랜드 그룹핑 로직 (헤니트2 추가)
+// 브랜드 그룹핑 로직 (헤니트2 추가)
 function getGroup(brandName) {
   const b = String(brandName).trim().toLowerCase();
   if(['씨','베스띠벨리','지이크','파렌하이트'].includes(b) || b.includes('si') || b.includes('sieg')) return '신원';
@@ -244,7 +252,7 @@ function getGroup(brandName) {
   return '기타';
 }
 
-// 2. 그룹 탭 클릭 로직
+// 탭 클릭 로직
 function setGroup(grp) {
   curGroup = grp;
   document.querySelectorAll('.g-tab').forEach(t => t.classList.remove('active'));
@@ -252,26 +260,56 @@ function setGroup(grp) {
   renderAll();
 }
 
+// 빠른 기간 설정 버튼 로직
+function setQuickDate(type) {
+  const today = new Date();
+  let from, to;
+  if (type === 'thisMonth') {
+      from = new Date(today.getFullYear(), today.getMonth(), 1);
+      to = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  } else if (type === 'lastMonth') {
+      from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      to = new Date(today.getFullYear(), today.getMonth(), 0);
+  } else if (type === 'thisYear') {
+      from = new Date(today.getFullYear(), 0, 1);
+      to = new Date(today.getFullYear(), 11, 31);
+  }
+  const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  document.getElementById('dateFrom').value = fmt(from);
+  document.getElementById('dateTo').value = fmt(to);
+  renderAll();
+}
+
 async function init() {
   try {
-    const saved = await localforage.getItem('hana_db_v4_3');
+    const saved = await localforage.getItem('hana_db_v4_4'); // DB 버전 업그레이드 (상품 데이터 포함용)
     if (saved) DB = saved;
-    const goal = await localforage.getItem('hana_goal');
-    if (goal) document.getElementById('goalInput').value = goal;
+    const goals = await localforage.getItem('hana_goals_v4');
+    if (goals) monthlyGoals = goals;
   } catch (e) {}
   
   if (DB.length > 0) {
     const dates = DB.map(r => r.date).sort();
-    document.getElementById('dateFrom').value = dates[0];
-    document.getElementById('dateTo').value = dates[dates.length - 1];
+    if(!document.getElementById('dateFrom').value) document.getElementById('dateFrom').value = dates[0];
+    if(!document.getElementById('dateTo').value) document.getElementById('dateTo').value = dates[dates.length - 1];
     renderAll();
   } else {
     document.getElementById('uploadModal').classList.add('show');
   }
 }
 
-async function updateGoal() { await localforage.setItem('hana_goal', document.getElementById('goalInput').value); renderKPI(); }
-async function clearData() { if(confirm('모든 데이터를 삭제할까요?')) { DB=[]; await localforage.clear(); location.reload(); } }
+// 월별 목표 저장 로직 업데이트
+async function updateGoal() { 
+  const toDate = document.getElementById('dateTo').value;
+  const targetMonth = toDate ? toDate.substring(0, 7) : new Date().toISOString().substring(0,7);
+  
+  monthlyGoals[targetMonth] = Number(document.getElementById('goalInput').value) || 0;
+  await localforage.setItem('hana_goals_v4', monthlyGoals);
+  renderKPI();
+  showToast(`${targetMonth}월 목표가 저장되었습니다.`);
+}
+
+async function clearData() { if(confirm('모든 데이터를 삭제할까요? (상품 조회 포함)')) { DB=[]; monthlyGoals={}; await localforage.clear(); location.reload(); } }
 
 function switchTab(tabId) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -297,7 +335,7 @@ async function handleFiles(files) {
   DB = DB.filter(r => { if(!r.orderId) return true; if(seen.has(r.orderId)) return false; seen.add(r.orderId); return true; });
   DB.sort((a,b) => a.date.localeCompare(b.date));
   
-  await localforage.setItem('hana_db_v4_3', DB);
+  await localforage.setItem('hana_db_v4_4', DB);
   document.getElementById('uploadModal').classList.remove('show');
   document.getElementById('pbText').textContent = '';
   
@@ -309,6 +347,7 @@ async function handleFiles(files) {
   renderAll();
 }
 
+// 상품명 파싱 로직 추가 (사방넷 J열[9], 리오벨 T열[19])
 function parseXLSX(file) {
   return new Promise(resolve => {
     const reader = new FileReader();
@@ -332,9 +371,13 @@ function parseXLSX(file) {
           const brand = (isSabangnet ? r[2] : r[18]) || '미분류';
           const price = parseFloat(String(isSabangnet ? r[23] : r[22]).replace(/[,\s₩]/g, '')) || 0;
           
+          // J열(9) 또는 T열(19)에서 상품명 추출
+          const productName = String(isSabangnet ? r[9] : r[19] || '상품명 없음').trim();
+          
           res.push({
             date: dateStr, ym: dateStr.substring(0,7), brand: brand,
             group: getGroup(brand), channel: (isSabangnet ? r[1] : r[5]) || '기타',
+            product: productName, /* 상품명 데이터 추가 */
             orderId: isSabangnet ? r[7] : r[7], status: status,
             completeAmt: status === 'complete' ? price : 0, retAmt: status === 'return' ? price : 0
           });
@@ -353,7 +396,6 @@ function getData() {
   return DB.filter(r => {
     if(from && r.date < from) return false;
     if(to && r.date > to) return false;
-    // 탭 그룹 필터 적용
     if(curGroup !== 'all' && r.group !== curGroup) return false;
     return true;
   });
@@ -382,7 +424,14 @@ function renderKPI() {
   document.getElementById('kpi-return-sub').innerHTML = `${rCnt.toLocaleString()}건 <span class="badge ${retRate >= 20 ? 'badge-danger' : 'badge-success'}">반품 ${retRate}%</span>`;
   document.getElementById('kpi-total-cnt').textContent = (cCnt + rCnt).toLocaleString();
   
-  const goal = Number(document.getElementById('goalInput').value) || 0;
+  // 월별 목표 가져오기
+  const toDate = document.getElementById('dateTo').value;
+  const targetMonth = toDate ? toDate.substring(0, 7) : new Date().toISOString().substring(0,7);
+  const goal = monthlyGoals[targetMonth] || 0;
+  
+  document.getElementById('kpi-goal-month-label').textContent = `${targetMonth.substring(5)}월 목표액`;
+  document.getElementById('goalInput').value = goal > 0 ? goal : '';
+  
   if(goal > 0) {
       const achv = Math.round((cAmt / goal) * 100);
       document.getElementById('kpi-goal-pct').textContent = `${achv}%`;
@@ -392,11 +441,12 @@ function renderKPI() {
   } else {
       document.getElementById('kpi-goal-pct').textContent = '-';
       document.getElementById('kpi-goal-fill').style.width = '0%';
-      document.getElementById('kpi-goal-achieved').textContent = '목표를 입력해주세요';
+      document.getElementById('kpi-goal-achieved').textContent = '입력 대기중';
       document.getElementById('kpi-goal-target').textContent = '';
   }
 }
 
+// (중간 차트 및 브랜드 렌더링 함수는 동일 유지)
 function renderChart() {
   const data = getData();
   const dayMap = {};
@@ -495,7 +545,7 @@ function renderBrandDetail(brandName) {
   }).join('');
 }
 
-// 3. 일별 실적 (다차원 피벗 테이블)
+// 다차원 실적 테이블 (상품 옵션 추가)
 function renderDailyTable() {
   const data = getData();
   const wrap = document.getElementById('dailyTableWrap');
@@ -508,6 +558,8 @@ function renderDailyTable() {
   else if(pivot === 'date_channel') { rowKey = 'date'; colKey = 'channel'; rowLabel = '날짜'; }
   else if(pivot === 'brand_channel') { rowKey = 'brand'; colKey = 'channel'; rowLabel = '브랜드'; }
   else if(pivot === 'channel_brand') { rowKey = 'channel'; colKey = 'brand'; rowLabel = '채널'; }
+  else if(pivot === 'product_channel') { rowKey = 'product'; colKey = 'channel'; rowLabel = '상품명'; }
+  else if(pivot === 'product_brand') { rowKey = 'product'; colKey = 'brand'; rowLabel = '상품명'; }
 
   const mat = {}; const rowsSet = new Set(); const colsSet = new Set();
   
@@ -522,16 +574,19 @@ function renderDailyTable() {
   
   const cols = [...colsSet].sort();
   let rows = [...rowsSet].sort();
-  // 날짜일 경우 내림차순(최근 날짜가 위로), 그 외엔 합계 높은 순
+  // 상품 등 다른 정렬 조건 (금액순)
   if(rowKey === 'date') rows.reverse();
   else rows.sort((a,b) => mat[b].total - mat[a].total);
+  
+  // 상품명이 너무 길 경우를 대비해 첫 셀에 클래스 추가
+  const isProduct = rowKey === 'product';
   
   let html = `<table class="data-table"><thead><tr><th>${rowLabel}</th><th style="text-align:right;">총 합계</th>`;
   cols.forEach(c => html += `<th>${esc(c)}</th>`);
   html += `</tr></thead><tbody>`;
   
   rows.forEach(r => {
-    html += `<tr><td>${esc(r)}</td><td style="font-weight:700; color:var(--primary); font-family:'DM Mono', monospace;">₩${won(mat[r].total)}</td>`;
+    html += `<tr><td title="${esc(r)}" class="${isProduct ? 'product-cell' : ''}">${esc(r)}</td><td style="font-weight:700; color:var(--primary); font-family:'DM Mono', monospace;">₩${won(mat[r].total)}</td>`;
     cols.forEach(c => { 
         html += `<td style="font-family:'DM Mono', monospace;">${mat[r][c] ? `₩${won(mat[r][c])}` : '<span style="color:var(--border)">-</span>'}</td>`; 
     });
@@ -541,7 +596,6 @@ function renderDailyTable() {
   wrap.innerHTML = html;
 }
 
-// 4. 히트맵
 function renderHeatmap() {
   const data = getData();
   if(!data.length) return document.getElementById('heatmapWrap').innerHTML = '<div style="padding:60px;text-align:center">데이터 없음</div>';
