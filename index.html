@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Han-A OPS v5.0 (Firebase Live)</title>
+<title>Han-A OPS v5.1 (Firebase Live + Backup)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -126,6 +126,8 @@
       <span style="color:var(--text-light)">~</span>
       <input type="date" id="dateTo" class="date-input" onchange="renderAll()">
     </div>
+    
+    <button class="btn-outline" onclick="document.getElementById('settingsModal').classList.add('show')" style="color:var(--text-main);">⚙️ 데이터 관리</button>
     <button class="btn-upload" onclick="document.getElementById('uploadModal').classList.add('show')">↑ 서버로 엑셀 업로드</button>
   </div>
 </header>
@@ -192,6 +194,24 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="settingsModal">
+  <div class="upload-box" style="text-align:center;">
+    <h2 style="margin-bottom: 24px;">⚙️ 데이터 관리</h2>
+    <p style="color:var(--text-sub); margin-bottom: 24px; font-size:13px;">현재 서버에 있는 전체 데이터를 내 컴퓨터로 다운로드하거나<br>백업 파일로 서버 데이터를 과거로 되돌릴 수 있습니다.</p>
+    
+    <button class="btn-upload" style="width:100%; justify-content:center; padding: 14px; margin-bottom: 12px; font-size: 14px;" onclick="backupData()">💾 서버 데이터 백업 (다운로드)</button>
+    
+    <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(event)">
+    <button class="btn-outline" style="width:100%; justify-content:center; padding: 14px; margin-bottom: 12px; font-size: 14px;" onclick="document.getElementById('restoreInput').click()">📂 백업 파일로 복원 (서버 덮어쓰기)</button>
+    
+    <div style="border-top: 1px solid var(--border); margin: 24px 0;"></div>
+    
+    <button class="btn-outline" style="width:100%; justify-content:center; border-color:var(--danger-light); color:var(--danger);" onclick="clearData()">🚨 서버 데이터 전체 삭제 (복구 불가)</button>
+    
+    <button class="btn-outline" style="margin-top:24px; width:100%; justify-content:center; background: var(--bg-main);" onclick="document.getElementById('settingsModal').classList.remove('show')">닫기</button>
+  </div>
+</div>
+
 <div class="modal-overlay" id="uploadModal">
   <div class="upload-box" style="text-align:center;">
     <h2 style="margin-bottom: 8px;">Excel Upload</h2>
@@ -201,9 +221,7 @@
       <div style="font-size: 40px; margin-bottom: 16px;">☁️</div><div style="font-weight:600;">클릭하여 서버로 전송하기</div>
     </div>
     <div id="pbText" style="margin-top:16px; font-size:13px; color:var(--primary); font-weight:600;"></div>
-    <div style="border-top: 1px solid var(--border); margin: 24px 0;"></div>
-    <button class="btn-outline" style="width:100%; justify-content:center; border-color:var(--danger-light); color:var(--danger);" onclick="clearData()">🚨 서버 데이터 전체 삭제</button>
-    <button class="btn-outline" style="margin-top:12px; width:100%; justify-content:center;" onclick="document.getElementById('uploadModal').classList.remove('show')">닫기</button>
+    <button class="btn-outline" style="margin-top:32px; width:100%; justify-content:center;" onclick="document.getElementById('uploadModal').classList.remove('show')">닫기</button>
   </div>
 </div>
 
@@ -224,7 +242,7 @@
 
 <script>
 // ==========================================
-// 🔥 파이어베이스 초기화 (사용자 설정값 적용 완료)
+// 🔥 파이어베이스 초기화 (설정값 유지)
 // ==========================================
 const firebaseConfig = {
   apiKey: "AIzaSyBBk2BwwnAYJ9WzY8MJfcbHQZO3rZkjxY4",
@@ -293,6 +311,48 @@ database.ref('hana_ops_live').on('value', (snapshot) => {
   }
 });
 
+// 🟢 백업 기능 추가 (JSON 다운로드)
+function backupData() {
+  if (DB.length === 0) return showToast('백업할 데이터가 없습니다.');
+  const backupObject = { version: '5.1', db: DB, goals: monthlyGoals };
+  const blob = new Blob([JSON.stringify(backupObject)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const today = new Date().toISOString().slice(0,10).replace(/-/g, '');
+  a.download = `HanA_OPS_Backup_Live_${today}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('서버 데이터가 파일로 다운로드되었습니다.');
+  document.getElementById('settingsModal').classList.remove('show');
+}
+
+// 🟢 복원 기능 추가 (JSON 업로드 후 파이어베이스 서버 덮어쓰기)
+function restoreData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (parsed.db && Array.isArray(parsed.db)) {
+        document.getElementById('settingsModal').classList.remove('show');
+        showToast('서버로 백업 데이터를 복원하는 중...');
+        // 파이어베이스 데이터 강제 덮어쓰기
+        await database.ref('hana_ops_live/records').set(parsed.db);
+        await database.ref('hana_ops_live/goals').set(parsed.goals || {});
+        showToast('서버 데이터 복원 완료! 팀원 화면에도 즉시 반영됩니다.');
+      } else {
+        throw new Error('Invalid format');
+      }
+    } catch (err) {
+      showToast('올바른 백업 파일이 아닙니다.');
+    }
+    event.target.value = ''; // input 초기화
+  };
+  reader.readAsText(file);
+}
+
 // 🟢 [파이어베이스 연동] 서버에 목표 저장
 async function saveGoals() {
   const toDate = document.getElementById('dateTo').value;
@@ -309,11 +369,11 @@ async function saveGoals() {
   showToast(`${targetMonth.substring(5)}월 목표가 서버에 저장되었습니다.`);
 }
 
-// 🟢 [파이어베이스 연동] 서버 데이터 삭제
+// 🟢 [파이어베이스 연동] 서버 데이터 전체 삭제
 async function clearData() { 
-  if(confirm('정말 서버의 모든 데이터를 삭제할까요? (팀원 전체에게 적용)')) { 
+  if(confirm('정말 서버의 모든 데이터를 삭제할까요?\n(팀원 전체 화면에서도 즉시 삭제되며 복구할 수 없습니다!)')) { 
     await database.ref('hana_ops_live').set(null);
-    document.getElementById('uploadModal').classList.remove('show');
+    document.getElementById('settingsModal').classList.remove('show');
     showToast('서버 데이터 초기화 완료');
   } 
 }
@@ -406,9 +466,15 @@ function getData() {
 function renderAll() {
   if (!DB.length) {
     document.getElementById('kpi-complete').textContent = '₩0';
+    document.getElementById('kpi-complete-sub').textContent = `0건`;
+    document.getElementById('kpi-net').textContent = `₩0`;
+    document.getElementById('kpi-return').textContent = `₩0`;
+    document.getElementById('kpi-return-sub').innerHTML = `0건 <span class="badge badge-success">반품 0%</span>`;
+    document.getElementById('kpi-total-cnt').textContent = '0';
     if(chartInstance) chartInstance.destroy();
     document.getElementById('brandGrid').innerHTML = '<div style="color:var(--text-sub); padding:20px;">서버에 등록된 데이터가 없습니다.</div>';
     document.getElementById('dailyTableWrap').innerHTML = '<div style="padding:60px;text-align:center">데이터 없음</div>';
+    document.getElementById('heatmapWrap').innerHTML = '<div style="padding:60px;text-align:center">데이터 없음</div>';
     return;
   }
   renderKPI();
