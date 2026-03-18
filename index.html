@@ -115,6 +115,14 @@
   .day-card-item-label{font-size:11px;color:var(--text-sub);margin-bottom:2px;}
   .day-card-item-val{font-size:13px;font-weight:700;font-family:'DM Mono',monospace;}
 
+  /* ── 차트 아래 일별 목록 ── */
+  .chart-day-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;}
+  .chart-day-row{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:6px;background:var(--bg-main);border:1px solid var(--border);}
+  .chart-day-row:hover{border-color:var(--primary);background:var(--primary-light);}
+  .chart-day-date{font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--text-sub);}
+  .chart-day-amt{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--primary);}
+  .chart-day-ret{font-size:11px;color:var(--danger);margin-top:1px;}
+
   /* ── Bar chart for daily ── */
   .daily-chart-wrap{height:220px;position:relative;margin-bottom:16px;}
 
@@ -258,7 +266,9 @@
       <div>
         <div class="card">
           <div class="card-title">매출 추이 (최근 30일)</div>
-          <div style="height:260px;position:relative"><canvas id="mainChart"></canvas></div>
+          <div style="height:240px;position:relative"><canvas id="mainChart"></canvas></div>
+          <!-- 차트 아래 일별 금액 목록 -->
+          <div id="overviewChartList" style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;max-height:220px;overflow-y:auto;"></div>
         </div>
         <div class="card">
           <div class="card-title">브랜드별 실적</div>
@@ -307,6 +317,8 @@
       <div id="dailySalesChartWrap" class="daily-chart-wrap">
         <canvas id="dailySalesChart"></canvas>
       </div>
+      <!-- 차트 아래 일별 금액 목록 (차트 뷰일 때만 표시) -->
+      <div id="dailyChartList" style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;"></div>
 
       <!-- 데스크톱 테이블 -->
       <div class="daily-table-wrap" id="dailySalesTableWrap">
@@ -743,6 +755,21 @@ function renderOverviewChart(data){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
       scales:{y:{ticks:{callback:v=>wonK(v)}}}}
   });
+
+  // ── 차트 아래 날짜별 금액 목록 (최근 30일, 내림차순) ──
+  const listEl=document.getElementById('overviewChartList');
+  const sorted=[...labels].reverse(); // 최신 날짜 먼저
+  listEl.innerHTML=`<div class="chart-day-list">`+
+    sorted.map(d=>{
+      const v=dayMap[d];
+      return `<div class="chart-day-row">
+        <span class="chart-day-date">${d}</span>
+        <div style="text-align:right">
+          <div class="chart-day-amt">₩${won(v.cAmt)}</div>
+          ${v.rAmt>0?`<div class="chart-day-ret">반품 -₩${won(v.rAmt)}</div>`:''}
+        </div>
+      </div>`;
+    }).join('')+`</div>`;
 }
 
 function renderBrands(data){
@@ -811,7 +838,9 @@ function renderDailySales(data){
 
   // ── 차트 ──
   const chartWrap=document.getElementById('dailySalesChartWrap');
+  const dailyListEl=document.getElementById('dailyChartList');
   chartWrap.style.display = (dailyView==='chart') ? 'block' : 'none';
+  dailyListEl.style.display = (dailyView==='chart') ? 'block' : 'none';
   if(dailyView==='chart'){
     const chronoDates=[...dates].reverse(); // 차트는 항상 오름차순
     if(dailyChartInstance) dailyChartInstance.destroy();
@@ -830,6 +859,20 @@ function renderDailySales(data){
         scales:{y:{ticks:{callback:v=>wonK(Math.abs(v))}}}
       }
     });
+
+    // ── 차트 아래 날짜별 금액 목록 ──
+    dailyListEl.innerHTML=`<div class="chart-day-list">`+
+      dates.map(d=>{
+        const v=dayMap[d];
+        const rr=v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0;
+        return `<div class="chart-day-row">
+          <span class="chart-day-date">${d}</span>
+          <div style="text-align:right">
+            <div class="chart-day-amt">₩${won(v.cAmt)}</div>
+            ${v.rAmt>0?`<div class="chart-day-ret">반품 -₩${won(v.rAmt)} (${rr}%)</div>`:''}
+          </div>
+        </div>`;
+      }).join('')+`</div>`;
   }
 
   // ── 데스크톱 테이블 ──
