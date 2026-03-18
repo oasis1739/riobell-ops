@@ -115,13 +115,13 @@
   .day-card-item-label{font-size:11px;color:var(--text-sub);margin-bottom:2px;}
   .day-card-item-val{font-size:13px;font-weight:700;font-family:'DM Mono',monospace;}
 
-  /* ── 차트 아래 일별 목록 ── */
-  .chart-day-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;}
-  .chart-day-row{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:6px;background:var(--bg-main);border:1px solid var(--border);}
-  .chart-day-row:hover{border-color:var(--primary);background:var(--primary-light);}
-  .chart-day-date{font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--text-sub);}
-  .chart-day-amt{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--primary);}
-  .chart-day-ret{font-size:11px;color:var(--danger);margin-top:1px;}
+  /* ── 차트 아래 컬럼 매칭 금액 행 ── */
+  .chart-label-row{display:flex;overflow-x:auto;scrollbar-width:none;padding:10px 0 4px;}
+  .chart-label-row::-webkit-scrollbar{display:none;}
+  .chart-label-col{flex:1;min-width:0;text-align:center;padding:0 2px;}
+  .chart-label-date{font-size:11px;color:var(--text-sub);font-family:'DM Mono',monospace;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .chart-label-amt{font-size:12px;font-weight:700;color:var(--primary);font-family:'DM Mono',monospace;background:var(--primary-light);border-radius:4px;padding:3px 4px;white-space:nowrap;}
+  .chart-label-ret{font-size:11px;color:var(--danger);margin-top:3px;font-family:'DM Mono',monospace;}
 
   /* ── Bar chart for daily ── */
   .daily-chart-wrap{height:220px;position:relative;margin-bottom:16px;}
@@ -735,6 +735,22 @@ function renderAll(){
   if(curTab==='heatmap')     { renderHeatmap(data); }
 }
 
+// ── 차트 막대 칼럼 너비에 금액 행 패딩 동기화 ──
+function syncChartLabelPadding(chartInst, listId){
+  if(!chartInst) return;
+  const listEl=document.getElementById(listId);
+  if(!listEl) return;
+  try{
+    const ca=chartInst.chartArea;
+    // 차트 캔버스 총 너비 대비 플롯 영역 시작점 비율로 left padding 계산
+    const canvasW=chartInst.canvas.offsetWidth;
+    const leftPad=Math.round(ca.left);
+    const rightPad=Math.round(canvasW-ca.right);
+    const row=listEl.querySelector('.chart-label-row');
+    if(row){ row.style.paddingLeft=leftPad+'px'; row.style.paddingRight=rightPad+'px'; }
+  }catch(e){}
+}
+
 // ═══════════════════════════════════
 // 전체현황 탭
 // ═══════════════════════════════════
@@ -753,21 +769,18 @@ function renderOverviewChart(data){
       {label:'완료금액',data:labels.map(d=>dayMap[d].cAmt),backgroundColor:'#DBEAFE',hoverBackgroundColor:'#2563EB',borderRadius:4}
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{y:{ticks:{callback:v=>wonK(v)}}}}
+      scales:{y:{ticks:{callback:v=>wonK(v)}}},
+      animation:{onComplete:()=>syncChartLabelPadding(chartInstance,'overviewChartList')}}
   });
 
-  // ── 차트 아래 날짜별 금액 목록 (최근 30일, 내림차순) ──
+  // ── 차트 막대와 1:1 매칭 금액 행 ──
   const listEl=document.getElementById('overviewChartList');
-  const sorted=[...labels].reverse(); // 최신 날짜 먼저
-  listEl.innerHTML=`<div class="chart-day-list">`+
-    sorted.map(d=>{
+  listEl.innerHTML=`<div class="chart-label-row">`+
+    labels.map(d=>{
       const v=dayMap[d];
-      return `<div class="chart-day-row">
-        <span class="chart-day-date">${d}</span>
-        <div style="text-align:right">
-          <div class="chart-day-amt">₩${won(v.cAmt)}</div>
-          ${v.rAmt>0?`<div class="chart-day-ret">반품 -₩${won(v.rAmt)}</div>`:''}
-        </div>
+      return `<div class="chart-label-col">
+        <div class="chart-label-amt">₩${won(v.cAmt)}</div>
+        ${v.rAmt>0?`<div class="chart-label-ret">-₩${won(v.rAmt)}</div>`:'<div style="height:18px"></div>'}
       </div>`;
     }).join('')+`</div>`;
 }
@@ -856,21 +869,19 @@ function renderDailySales(data){
       options:{
         responsive:true,maintainAspectRatio:false,
         plugins:{legend:{position:'bottom',labels:{font:{family:'Noto Sans KR',size:12}}}},
-        scales:{y:{ticks:{callback:v=>wonK(Math.abs(v))}}}
+        scales:{y:{ticks:{callback:v=>wonK(Math.abs(v))}}},
+        animation:{onComplete:()=>syncChartLabelPadding(dailyChartInstance,'dailyChartList')}
       }
     });
 
-    // ── 차트 아래 날짜별 금액 목록 ──
-    dailyListEl.innerHTML=`<div class="chart-day-list">`+
-      dates.map(d=>{
+    // ── 차트 막대와 1:1 매칭 금액 행 ──
+    dailyListEl.innerHTML=`<div class="chart-label-row">`+
+      chronoDates.map(d=>{
         const v=dayMap[d];
         const rr=v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0;
-        return `<div class="chart-day-row">
-          <span class="chart-day-date">${d}</span>
-          <div style="text-align:right">
-            <div class="chart-day-amt">₩${won(v.cAmt)}</div>
-            ${v.rAmt>0?`<div class="chart-day-ret">반품 -₩${won(v.rAmt)} (${rr}%)</div>`:''}
-          </div>
+        return `<div class="chart-label-col">
+          <div class="chart-label-amt">₩${won(v.cAmt)}</div>
+          ${v.rAmt>0?`<div class="chart-label-ret">-₩${won(v.rAmt)}</div>`:'<div style="height:18px"></div>'}
         </div>`;
       }).join('')+`</div>`;
   }
