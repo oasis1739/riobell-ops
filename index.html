@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Han-A OPS v5.5</title>
+<title>Han-A OPS v5.7</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -45,6 +45,8 @@
   .btn-outline:hover{background:var(--bg-main);}
   .btn-small{padding:3px 8px;font-size:11px;border-radius:4px;border:1px solid var(--warning);color:var(--warning);background:#FFFBEB;cursor:pointer;font-weight:600;transition:.2s;}
   .btn-small:hover{background:var(--warning);color:#fff;}
+  .btn-danger-sm{padding:3px 8px;font-size:11px;border-radius:4px;border:1px solid var(--danger);color:var(--danger);background:var(--danger-light);cursor:pointer;font-weight:600;transition:.2s;}
+  .btn-danger-sm:hover{background:var(--danger);color:#fff;}
   .date-input{border:none;background:transparent;font-family:'DM Mono',monospace;font-size:12px;color:var(--text-main);outline:none;cursor:pointer;font-weight:500;width:100px;}
 
   /* ── Layout ── */
@@ -64,6 +66,8 @@
   .badge{padding:3px 7px;border-radius:6px;font-size:11px;font-weight:600;}
   .badge-danger{background:var(--danger-light);color:var(--danger);}
   .badge-success{background:#dcfce7;color:var(--success);}
+  .badge-warning{background:#FEF3C7;color:var(--warning);}
+  .badge-primary{background:var(--primary-light);color:var(--primary);}
   .goal-progress{height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin:10px 0;}
   .goal-fill{height:100%;background:var(--warning);transition:width .5s ease;}
   .goal-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text-sub);font-family:'DM Mono',monospace;}
@@ -74,6 +78,7 @@
   .brand-card{border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:.2s;border-left:4px solid transparent;}
   .brand-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.06);}
   .brand-card.active{border-left-color:var(--primary);background:var(--primary-light);}
+  .brand-card.unmatched{border-left-color:var(--danger);background:var(--danger-light);}
   .bc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
   .bc-tag{font-size:11px;padding:2px 7px;border-radius:6px;background:var(--bg-main);color:var(--text-sub);font-weight:500;}
   .bc-amt{font-size:22px;font-weight:700;font-family:'Oswald',sans-serif;margin-bottom:8px;}
@@ -97,26 +102,40 @@
   /* ── Pages ── */
   .page{display:none;}.page.active{display:block;}
 
-  /* ── Daily Sales Page ── */
+  /* ── Daily ── */
   .daily-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
   .daily-view-toggle{display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
   .dvt-btn{padding:7px 14px;border:none;background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-sub);transition:.2s;}
   .dvt-btn.active{background:var(--warning);color:#fff;}
   .daily-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px;}
-
-  /* mobile card view */
   .daily-cards{display:none;}
   .day-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;}
   .day-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);}
-  .day-card-date{font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;color:var(--text-main);}
+  .day-card-date{font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;}
   .day-card-total{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:var(--primary);}
   .day-card-rows{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
   .day-card-item{background:var(--bg-main);border-radius:6px;padding:8px 10px;}
   .day-card-item-label{font-size:11px;color:var(--text-sub);margin-bottom:2px;}
   .day-card-item-val{font-size:13px;font-weight:700;font-family:'DM Mono',monospace;}
-
-  /* ── Bar chart for daily ── */
   .daily-chart-wrap{height:250px;position:relative;margin-bottom:16px;}
+
+  /* ── 브랜드 매핑 관리 ── */
+  .brand-map-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
+  .brand-map-row:last-child{border-bottom:none;}
+  .brand-name-tag{font-family:'DM Mono',monospace;font-size:12px;font-weight:600;background:var(--bg-main);padding:4px 10px;border-radius:6px;border:1px solid var(--border);}
+  .group-select{border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:#fff;cursor:pointer;}
+  .group-select:focus{outline:none;border-color:var(--primary);}
+
+  /* ── 미분류 경고 배너 ── */
+  .unmatched-banner{background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .unmatched-banner-text{font-size:13px;color:#92400E;font-weight:500;}
+  .unmatched-banner-brands{display:flex;gap:6px;flex-wrap:wrap;}
+
+  /* ── Settings Modal Tabs ── */
+  .modal-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;}
+  .modal-tab{padding:8px 16px;border:none;background:transparent;font-size:13px;font-weight:500;color:var(--text-sub);cursor:pointer;border-bottom:2px solid transparent;transition:.2s;}
+  .modal-tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:700;}
+  .modal-panel{display:none;}.modal-panel.active{display:block;}
 
   /* ── Modals ── */
   .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;justify-content:center;align-items:center;backdrop-filter:blur(4px);padding:20px;}
@@ -124,6 +143,11 @@
   .upload-box{background:var(--bg-card);padding:36px;border-radius:16px;width:100%;max-width:560px;box-shadow:0 10px 25px rgba(0,0,0,.1);max-height:90vh;overflow-y:auto;}
   .toast{position:fixed;bottom:24px;right:24px;background:var(--text-main);color:#fff;padding:12px 24px;border-radius:8px;transition:.3s;transform:translateY(100px);opacity:0;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,.15);font-weight:500;}
   .toast.show{transform:translateY(0);opacity:1;}
+
+  /* ── 미분류 매핑 팝업 ── */
+  .mapping-modal-inner{background:var(--bg-card);padding:32px;border-radius:16px;width:100%;max-width:500px;box-shadow:0 10px 25px rgba(0,0,0,.15);max-height:90vh;overflow-y:auto;}
+  .mapping-brand-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:10px;}
+  .mapping-brand-name{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;flex:1;}
 
   /* ── Responsive ── */
   @media(max-width:1100px){
@@ -134,7 +158,7 @@
   @media(max-width:768px){
     .topnav{flex-wrap:wrap;height:auto;padding:12px 16px;gap:10px;}
     .logo{margin-right:0;}
-    .tabs{width:100%;order:3;border-top:1px solid var(--border);padding-top:8px;padding-bottom:0;}
+    .tabs{width:100%;order:3;border-top:1px solid var(--border);padding-top:8px;}
     .topnav-right{order:2;}
     .container{padding:12px 14px;}
     .kpi-grid{grid-template-columns:1fr 1fr;gap:10px;}
@@ -157,11 +181,6 @@
   .chip-bar::-webkit-scrollbar{display:none;}
   .chip{padding:5px 14px;border-radius:16px;border:1px solid var(--border);background:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;color:var(--text-sub);}
   .chip.active{background:var(--primary);color:#fff;border-color:var(--primary);}
-
-  /* ── 파일 타입 배지 ── */
-  .file-type-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-left:6px;vertical-align:middle;}
-  .file-type-riobell{background:#FEF3C7;color:#92400E;}
-  .file-type-sabang{background:#DBEAFE;color:#1E40AF;}
 </style>
 </head>
 <body>
@@ -184,7 +203,7 @@
       <span style="color:var(--text-light)">~</span>
       <input type="date" id="dateTo" class="date-input" onchange="renderAll()">
     </div>
-    <button class="btn-outline" onclick="document.getElementById('settingsModal').classList.add('show')">⚙️ 관리</button>
+    <button class="btn-outline" onclick="openSettingsModal()">⚙️ 관리</button>
     <button class="btn-upload"  onclick="document.getElementById('uploadModal').classList.add('show')">↑ 업로드</button>
   </div>
 </header>
@@ -198,18 +217,20 @@
 </div>
 <div class="chip-bar" id="mobileChipBar">
   <span class="chip active" onclick="setGroupMobile('all',this)">전체</span>
-  <span class="chip" onclick="setGroupMobile('신원',this)">신원</span>
-  <span class="chip" onclick="setGroupMobile('라성',this)">라성</span>
-  <span class="chip" onclick="setGroupMobile('한아물산',this)">한아물산</span>
 </div>
 
 <div class="container">
-
   <div class="group-tabs" id="desktopGroupTabs">
     <button class="g-tab active" onclick="setGroup('all',this)">전체보기</button>
-    <button class="g-tab"        onclick="setGroup('신원',this)">신원</button>
-    <button class="g-tab"        onclick="setGroup('라성',this)">라성</button>
-    <button class="g-tab"        onclick="setGroup('한아물산',this)">한아물산</button>
+  </div>
+
+  <!-- 미분류 경고 배너 -->
+  <div class="unmatched-banner" id="unmatchedBanner" style="display:none">
+    <div>
+      <div class="unmatched-banner-text">⚠️ 그룹 미지정 브랜드가 있습니다 — 매핑하지 않으면 집계에서 제외됩니다</div>
+      <div class="unmatched-banner-brands" id="unmatchedBannerBrands"></div>
+    </div>
+    <button class="btn-small" onclick="openBrandMapModal()">지금 매핑하기</button>
   </div>
 
   <div class="kpi-grid">
@@ -295,19 +316,12 @@
           </select>
         </div>
       </div>
-
       <div id="dailySalesChartWrap" class="daily-chart-wrap">
         <canvas id="dailySalesChart"></canvas>
       </div>
-
       <div class="daily-table-wrap" id="dailySalesTableWrap">
-        <table class="data-table" id="dailySalesTable">
-          <thead><tr></tr></thead>
-          <tbody></tbody>
-          <tfoot><tr></tr></tfoot>
-        </table>
+        <table class="data-table" id="dailySalesTable"></table>
       </div>
-
       <div class="daily-cards" id="dailySalesCards"></div>
     </div>
   </div>
@@ -349,31 +363,75 @@
       </div>
     </div>
   </div>
-
 </div>
 
-<!-- Settings Modal -->
+<!-- ══════════ Settings Modal ══════════ -->
 <div class="modal-overlay" id="settingsModal">
-  <div class="upload-box" style="text-align:center;max-width:420px">
-    <h2 style="margin-bottom:20px">⚙️ 데이터 관리</h2>
-    <button class="btn-upload" style="width:100%;justify-content:center;padding:13px;margin-bottom:10px" onclick="backupData()">💾 서버 데이터 백업</button>
-    <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(event)">
-    <button class="btn-outline" style="width:100%;justify-content:center;padding:13px;margin-bottom:10px" onclick="document.getElementById('restoreInput').click()">📂 백업 파일로 복원</button>
-    <div style="border-top:1px solid var(--border);margin:20px 0"></div>
-    <button class="btn-outline" style="width:100%;justify-content:center;border-color:var(--danger-light);color:var(--danger)" onclick="clearData()">🚨 서버 데이터 전체 삭제</button>
-    <button class="btn-outline" style="margin-top:20px;width:100%;justify-content:center" onclick="document.getElementById('settingsModal').classList.remove('show')">닫기</button>
+  <div class="upload-box" style="max-width:560px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <h2>⚙️ 관리</h2>
+      <button class="btn-outline" style="padding:4px 10px;font-size:12px" onclick="document.getElementById('settingsModal').classList.remove('show')">닫기</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchModalTab('data',this)">데이터 관리</button>
+      <button class="modal-tab" onclick="switchModalTab('brandmap',this)">🏷️ 브랜드 매핑</button>
+      <button class="modal-tab" onclick="switchModalTab('groups',this)">🗂️ 그룹 관리</button>
+    </div>
+
+    <!-- 데이터 관리 패널 -->
+    <div class="modal-panel active" id="panel-data" style="text-align:center">
+      <button class="btn-upload" style="width:100%;justify-content:center;padding:13px;margin-bottom:10px" onclick="backupData()">💾 서버 데이터 백업</button>
+      <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(event)">
+      <button class="btn-outline" style="width:100%;justify-content:center;padding:13px;margin-bottom:10px" onclick="document.getElementById('restoreInput').click()">📂 백업 파일로 복원</button>
+      <div style="border-top:1px solid var(--border);margin:20px 0"></div>
+      <button class="btn-outline" style="width:100%;justify-content:center;border-color:var(--danger-light);color:var(--danger)" onclick="clearData()">🚨 서버 데이터 전체 삭제</button>
+    </div>
+
+    <!-- 브랜드 매핑 패널 -->
+    <div class="modal-panel" id="panel-brandmap">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:12px;color:var(--text-sub)">사방넷에서 수집되는 브랜드명 → 그룹 매핑 테이블</div>
+        <button class="btn-upload" style="padding:6px 12px;font-size:12px" onclick="saveBrandMap()">저장</button>
+      </div>
+      <!-- 미분류 섹션 -->
+      <div id="unmappedSection" style="display:none;margin-bottom:16px;padding:12px;background:#FFF7ED;border:1px solid #FED7AA;border-radius:8px">
+        <div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:10px">⚠️ 미분류 브랜드 (즉시 매핑 필요)</div>
+        <div id="unmappedList"></div>
+      </div>
+      <!-- 전체 매핑 목록 -->
+      <div style="max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px 12px">
+        <div id="brandMapList" style="font-size:13px">
+          <div style="padding:40px;text-align:center;color:var(--text-light)">등록된 브랜드 없음</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:8px">
+        <input type="text" id="newBrandName" placeholder="브랜드명 직접 추가" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;font-family:'DM Mono',monospace">
+        <select id="newBrandGroup" class="group-select">
+          <option value="">그룹 선택</option>
+        </select>
+        <button class="btn-upload" style="padding:7px 14px;font-size:12px" onclick="addBrandMapEntry()">추가</button>
+      </div>
+    </div>
+
+    <!-- 그룹 관리 패널 -->
+    <div class="modal-panel" id="panel-groups">
+      <div style="font-size:12px;color:var(--text-sub);margin-bottom:14px">그룹을 추가/삭제하면 필터 탭에 자동 반영됩니다</div>
+      <div style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px 12px;margin-bottom:14px">
+        <div id="groupList"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="newGroupName" placeholder="새 그룹명 (예: 자체브랜드)" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:13px">
+        <button class="btn-upload" style="padding:7px 14px;font-size:12px" onclick="addGroup()">추가</button>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Upload Modal -->
+<!-- ══════════ Upload Modal ══════════ -->
 <div class="modal-overlay" id="uploadModal">
   <div class="upload-box" style="text-align:center;max-width:440px">
     <h2 style="margin-bottom:6px">Excel Upload</h2>
-    <p style="color:var(--text-sub);margin-bottom:4px;font-size:13px">사방넷 주문서 또는 리오벨 매출 파일</p>
-    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
-      <span class="file-type-badge file-type-riobell">리오벨 매출</span>
-      <span class="file-type-badge file-type-sabang">사방넷 주문서</span>
-    </div>
+    <p style="color:var(--text-sub);margin-bottom:20px;font-size:13px">사방넷 주문서 또는 리오벨 매출 파일</p>
     <input type="file" id="fileInput" accept=".xlsx,.xls" multiple style="display:none" onchange="handleFiles(this.files)">
     <div style="border:2px dashed var(--border);padding:44px;cursor:pointer;background:var(--bg-main);border-radius:8px" onclick="document.getElementById('fileInput').click()">
       <div style="font-size:36px;margin-bottom:12px">☁️</div>
@@ -385,7 +443,20 @@
   </div>
 </div>
 
-<!-- Goal Modal -->
+<!-- ══════════ 미분류 브랜드 즉석 매핑 Modal ══════════ -->
+<div class="modal-overlay" id="mappingModal">
+  <div class="mapping-modal-inner">
+    <h2 style="margin-bottom:6px">🏷️ 신규 브랜드 감지</h2>
+    <p style="color:var(--text-sub);font-size:13px;margin-bottom:20px">아래 브랜드의 그룹을 지정해주세요. 지금 지정하지 않으면 '기타'로 처리됩니다.</p>
+    <div id="mappingModalList" style="margin-bottom:20px;max-height:320px;overflow-y:auto"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-outline" style="flex:1;justify-content:center" onclick="skipMappingAndUpload()">나중에</button>
+      <button class="btn-upload"  style="flex:1;justify-content:center" onclick="saveMappingAndUpload()">저장 후 업로드</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ Goal Modal ══════════ -->
 <div class="modal-overlay" id="goalModal">
   <div class="upload-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
@@ -398,7 +469,7 @@
     <div style="max-height:380px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">
       <table class="data-table" style="width:100%;text-align:center">
         <thead style="position:sticky;top:0;z-index:10">
-          <tr><th style="text-align:center">월</th><th style="text-align:center">신원</th><th style="text-align:center">라성</th><th style="text-align:center">한아물산</th></tr>
+          <tr><th style="text-align:center">월</th><th id="goalHeader_0" style="text-align:center">신원</th><th id="goalHeader_1" style="text-align:center">라성</th><th id="goalHeader_2" style="text-align:center">한아물산</th></tr>
         </thead>
         <tbody id="goalTableBody"></tbody>
       </table>
@@ -414,7 +485,7 @@
 
 <script>
 // ═══════════════════════════════════
-// 🔥 Firebase 초기화
+// 🔥 Firebase
 // ═══════════════════════════════════
 const firebaseConfig = {
   apiKey:"AIzaSyBBk2BwwnAYJ9WzY8MJfcbHQZO3rZkjxY4",
@@ -435,42 +506,126 @@ let DB = [], chartInstance = null, dailyChartInstance = null;
 let curTab = 'overview', curGroup = 'all', monthlyGoals = {};
 let dailyView = 'chart';
 
+// ── 브랜드 매핑 / 그룹 (Firebase 연동) ──
+let brandMap  = {};   // { "LEDEPT": "한아물산", "enNITTUDE": "한아물산", ... }
+let groupList = [];   // ["신원", "라성", "한아물산", ...]
+
+// 업로드 대기 중인 파싱 결과 (매핑 팝업 처리 후 사용)
+let _pendingUploadResults = null;
+
+// 기본 그룹 초기값 (Firebase에 없을 경우)
+const DEFAULT_GROUPS = ['신원', '라성', '한아물산'];
+
+// 하드코딩 폴백 매핑 (신규 설치 초기값 / Firebase 매핑 우선)
+const HARDCODED_MAP = {
+  '씨':'신원','베스띠벨리':'신원','지이크':'신원','파렌하이트':'신원',
+  '리오벨':'라성','헤니트':'라성','헤니트2':'라성','드베터':'라성',
+  '엔니튜드':'한아물산','마리본':'한아물산','제이슨우':'한아물산',
+  '막스스튜디오':'한아물산','르뎁트':'한아물산',
+  'enNITTUDE':'한아물산','LEDEPT':'한아물산','MARIBON':'한아물산',
+  'JASON WU':'한아물산','MAX STUDIO':'한아물산','Le Dept':'한아물산'
+};
+
 // ═══════════════════════════════════
 // 유틸
 // ═══════════════════════════════════
 function esc(s){ return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function won(n){ return Math.round(n).toLocaleString('ko-KR'); }
-function wonK(n){ const v=Math.round(n/10000); return v>=10000 ? `${(v/10000).toFixed(1)}억` : `${v}만`; }
-function toManWon(n){ const v=Math.round(n/10000); return v===0 ? '0' : v.toLocaleString('ko-KR')+'만'; }
-function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+function wonK(n){ const v=Math.round(n/10000); return v>=10000?`${(v/10000).toFixed(1)}억`:`${v}만`; }
+function toManWon(n){ const v=Math.round(n/10000); return v===0?'0':v.toLocaleString('ko-KR')+'만'; }
+function showToast(msg,dur=3000){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),dur); }
 function pct(a,b){ return b>0?Math.round(a/b*100):0; }
 
-// ─── 브랜드 → 그룹 매핑 ───
-function getGroup(b){
-  const s = String(b).trim();
+// ═══════════════════════════════════
+// ★ 브랜드 → 그룹 (Firebase 우선)
+// ═══════════════════════════════════
+function getGroup(brandName){
+  const s  = String(brandName||'').trim();
   const sl = s.toLowerCase();
-  // 신원
-  if(['씨','베스띠벨리','지이크','파렌하이트'].includes(s)) return '신원';
-  if(sl==='si'||sl.startsWith('sieg')) return '신원';
-  // 라성
-  if(['리오벨','헤니트','헤니트2','드베터'].includes(s)) return '라성';
-  // 한아물산
-  if(['엔니튜드','마리본','제이슨우','막스스튜디오','르뎁트','ennittude','enNITTUDE'].includes(s)) return '한아물산';
-  if(sl==='ennittude'||sl.startsWith('ennittude')||sl.startsWith('en nittude')) return '한아물산';
-  if(['maribon','마리본','jason wu','제이슨우','max studio','막스스튜디오','le dept','르뎁트'].includes(sl)) return '한아물산';
+  // 1순위: Firebase에 등록된 매핑
+  if(brandMap[s]) return brandMap[s];
+  // 2순위: 소문자 비교
+  const slKey = Object.keys(brandMap).find(k=>k.toLowerCase()===sl);
+  if(slKey) return brandMap[slKey];
+  // 3순위: 하드코딩 폴백
+  if(HARDCODED_MAP[s]) return HARDCODED_MAP[s];
+  const hcKey = Object.keys(HARDCODED_MAP).find(k=>k.toLowerCase()===sl);
+  if(hcKey) return HARDCODED_MAP[hcKey];
   return '기타';
+}
+
+// 모든 데이터에서 그룹 필드 재계산 (매핑 변경 후 호출)
+function recomputeGroups(){
+  DB = DB.map(r=>({ ...r, group: getGroup(r.brand) }));
+}
+
+// ═══════════════════════════════════
+// Firebase 리스닝
+// ═══════════════════════════════════
+database.ref('hana_ops_live').on('value', snapshot=>{
+  const data = snapshot.val() || {};
+  DB           = data.records   || [];
+  monthlyGoals = data.goals     || {};
+  brandMap     = data.brand_map || {};
+  groupList    = data.groups    || [...DEFAULT_GROUPS];
+
+  // DB의 group 필드 최신 매핑으로 재계산
+  DB = DB.map(r=>({ ...r, group: getGroup(r.brand) }));
+
+  if(DB.length>0 && !document.getElementById('dateFrom').value){
+    const dates = DB.map(r=>r.date).sort();
+    ['dateFrom','dateFromM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=dates[0]; });
+    ['dateTo','dateToM'].forEach(id=>{     const el=document.getElementById(id); if(el) el.value=dates[dates.length-1]; });
+  }
+
+  renderGroupTabs();
+  checkUnmatchedBanner();
+  renderAll();
+});
+
+// ═══════════════════════════════════
+// 그룹 탭 동적 렌더링
+// ═══════════════════════════════════
+function renderGroupTabs(){
+  const desktop = document.getElementById('desktopGroupTabs');
+  const mobile  = document.getElementById('mobileChipBar');
+
+  desktop.innerHTML = `<button class="g-tab ${curGroup==='all'?'active':''}" onclick="setGroup('all',this)">전체보기</button>`
+    + groupList.map(g=>`<button class="g-tab ${curGroup===g?'active':''}" onclick="setGroup('${esc(g)}',this)">${esc(g)}</button>`).join('');
+
+  mobile.innerHTML = `<span class="chip ${curGroup==='all'?'active':''}" onclick="setGroupMobile('all',this)">전체</span>`
+    + groupList.map(g=>`<span class="chip ${curGroup===g?'active':''}" onclick="setGroupMobile('${esc(g)}',this)">${esc(g)}</span>`).join('');
+}
+
+// ═══════════════════════════════════
+// 미분류 브랜드 배너
+// ═══════════════════════════════════
+function getUnmatchedBrands(){
+  const seen = new Set(DB.map(r=>r.brand));
+  return [...seen].filter(b=>getGroup(b)==='기타' && b && b!=='미분류');
+}
+
+function checkUnmatchedBanner(){
+  const unmatched = getUnmatchedBrands();
+  const banner    = document.getElementById('unmatchedBanner');
+  const brandsEl  = document.getElementById('unmatchedBannerBrands');
+  if(unmatched.length>0){
+    banner.style.display='flex';
+    brandsEl.innerHTML = unmatched.map(b=>`<span class="badge badge-danger">${esc(b)}</span>`).join('');
+  } else {
+    banner.style.display='none';
+  }
 }
 
 // ═══════════════════════════════════
 // 날짜 / 그룹 UI
 // ═══════════════════════════════════
-function syncDate(type, val){
-  if(type==='from') document.getElementById('dateFrom').value=val;
-  else              document.getElementById('dateTo').value=val;
+function syncDate(type,val){
+  document.getElementById(type==='from'?'dateFrom':'dateTo').value=val;
   renderAll();
 }
 function setQuickDate(type){
-  const today=new Date(); let from, to;
+  const today=new Date(); let from,to;
   if(type==='thisMonth'){ from=new Date(today.getFullYear(),today.getMonth(),1); to=new Date(today.getFullYear(),today.getMonth()+1,0); }
   else if(type==='lastMonth'){ from=new Date(today.getFullYear(),today.getMonth()-1,1); to=new Date(today.getFullYear(),today.getMonth(),0); }
   else if(type==='thisYear'){ from=new Date(today.getFullYear(),0,1); to=new Date(today.getFullYear(),11,31); }
@@ -479,26 +634,22 @@ function setQuickDate(type){
   ['dateTo','dateToM'].forEach(id=>{     const el=document.getElementById(id); if(el) el.value=fmt(to);   });
   renderAll();
 }
-function setGroup(grp, el){
+function setGroup(grp,el){
   curGroup=grp;
   document.querySelectorAll('.g-tab').forEach(t=>t.classList.remove('active'));
   if(el) el.classList.add('active');
   renderAll();
 }
-function setGroupMobile(grp, el){
+function setGroupMobile(grp,el){
   curGroup=grp;
   document.querySelectorAll('#mobileChipBar .chip').forEach(c=>c.classList.remove('active'));
   if(el) el.classList.add('active');
   document.querySelectorAll('.g-tab').forEach(t=>{
-    t.classList.toggle('active', t.textContent.replace('전체보기','all')===grp||(grp==='all'&&t.textContent==='전체보기'));
+    t.classList.toggle('active',(grp==='all'&&t.textContent==='전체보기')||t.textContent===grp);
   });
   renderAll();
 }
-
-// ═══════════════════════════════════
-// 탭 전환
-// ═══════════════════════════════════
-function switchTab(tabId, el){
+function switchTab(tabId,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+tabId).classList.add('active');
@@ -507,77 +658,238 @@ function switchTab(tabId, el){
 }
 
 // ═══════════════════════════════════
-// Firebase 리스닝
+// Settings Modal
 // ═══════════════════════════════════
-database.ref('hana_ops_live').on('value', snapshot=>{
-  const data=snapshot.val();
-  if(data){
-    DB=data.records||[]; monthlyGoals=data.goals||{};
-    if(DB.length>0 && !document.getElementById('dateFrom').value){
-      const dates=DB.map(r=>r.date).sort();
-      const first=dates[0], last=dates[dates.length-1];
-      ['dateFrom','dateFromM'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=first; });
-      ['dateTo','dateToM'].forEach(id=>{     const el=document.getElementById(id); if(el) el.value=last;  });
-    }
-  } else { DB=[]; monthlyGoals={}; }
-  renderAll();
-});
+function openSettingsModal(){
+  renderBrandMapPanel();
+  renderGroupPanel();
+  document.getElementById('settingsModal').classList.add('show');
+}
+function switchModalTab(tab,el){
+  document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.modal-panel').forEach(p=>p.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab==='brandmap') renderBrandMapPanel();
+  if(tab==='groups')   renderGroupPanel();
+}
+
+// ── 브랜드 매핑 패널 렌더링 ──
+function renderBrandMapPanel(){
+  // 전체 브랜드 목록 = Firebase brandMap + DB에 나타난 브랜드 + HARDCODED_MAP
+  const allBrands = new Set([
+    ...Object.keys(brandMap),
+    ...Object.keys(HARDCODED_MAP),
+    ...DB.map(r=>r.brand).filter(Boolean)
+  ]);
+
+  const unmatched = [...allBrands].filter(b=>getGroup(b)==='기타');
+  const matched   = [...allBrands].filter(b=>getGroup(b)!=='기타').sort();
+
+  // 미분류 섹션
+  const unSection = document.getElementById('unmappedSection');
+  const unList    = document.getElementById('unmappedList');
+  if(unmatched.length>0){
+    unSection.style.display='block';
+    unList.innerHTML = unmatched.map(b=>brandMapRowHtml(b, '')).join('');
+  } else {
+    unSection.style.display='none';
+  }
+
+  // 전체 목록
+  document.getElementById('brandMapList').innerHTML =
+    matched.length===0
+      ? '<div style="padding:30px;text-align:center;color:var(--text-light)">등록된 매핑 없음</div>'
+      : matched.map(b=>brandMapRowHtml(b, getGroup(b))).join('');
+
+  // 그룹 셀렉트 옵션 동기화
+  updateGroupSelects();
+}
+
+function brandMapRowHtml(brand, group){
+  const opts = ['', ...groupList].map(g=>
+    `<option value="${esc(g)}" ${g===group?'selected':''}>${g||'— 선택 —'}</option>`
+  ).join('');
+  return `<div class="brand-map-row">
+    <span class="brand-name-tag">${esc(brand)}</span>
+    <select class="group-select" data-brand="${esc(brand)}">${opts}</select>
+    <button class="btn-danger-sm" onclick="removeBrandEntry('${esc(brand)}')">삭제</button>
+  </div>`;
+}
+
+function updateGroupSelects(){
+  const opts = ['', ...groupList].map(g=>`<option value="${esc(g)}">${g||'— 선택 —'}</option>`).join('');
+  document.getElementById('newBrandGroup').innerHTML = opts;
+}
+
+async function saveBrandMap(){
+  // 패널의 모든 select를 읽어 brandMap 재구성
+  const newMap = {};
+  document.querySelectorAll('#panel-brandmap select[data-brand]').forEach(sel=>{
+    const brand = sel.dataset.brand;
+    const grp   = sel.value;
+    if(brand && grp) newMap[brand] = grp;
+  });
+  // 기존 매핑 유지 (패널에 없는 항목 보존)
+  const merged = { ...brandMap, ...newMap };
+  await database.ref('hana_ops_live/brand_map').set(merged);
+  showToast('브랜드 매핑 저장 완료');
+}
+
+async function addBrandMapEntry(){
+  const name = document.getElementById('newBrandName').value.trim();
+  const grp  = document.getElementById('newBrandGroup').value;
+  if(!name){ showToast('브랜드명을 입력하세요'); return; }
+  if(!grp){  showToast('그룹을 선택하세요');    return; }
+  const updated = { ...brandMap, [name]: grp };
+  await database.ref('hana_ops_live/brand_map').set(updated);
+  document.getElementById('newBrandName').value='';
+  showToast(`'${name}' → ${grp} 추가 완료`);
+}
+
+async function removeBrandEntry(brand){
+  const updated = { ...brandMap };
+  delete updated[brand];
+  await database.ref('hana_ops_live/brand_map').set(updated);
+  showToast(`'${brand}' 매핑 삭제`);
+}
+
+// ── 그룹 관리 패널 ──
+function renderGroupPanel(){
+  document.getElementById('groupList').innerHTML = groupList.map((g,i)=>
+    `<div class="brand-map-row">
+      <span style="font-weight:600">${esc(g)}</span>
+      <span></span>
+      <button class="btn-danger-sm" onclick="removeGroup('${esc(g)}')">삭제</button>
+    </div>`
+  ).join('') || '<div style="padding:20px;text-align:center;color:var(--text-light)">그룹 없음</div>';
+}
+
+async function addGroup(){
+  const name = document.getElementById('newGroupName').value.trim();
+  if(!name){ showToast('그룹명을 입력하세요'); return; }
+  if(groupList.includes(name)){ showToast('이미 존재하는 그룹입니다'); return; }
+  const updated = [...groupList, name];
+  await database.ref('hana_ops_live/groups').set(updated);
+  document.getElementById('newGroupName').value='';
+  showToast(`그룹 '${name}' 추가 완료`);
+}
+
+async function removeGroup(name){
+  if(!confirm(`'${name}' 그룹을 삭제하면 해당 그룹 브랜드들이 미분류 처리됩니다. 계속하시겠습니까?`)) return;
+  const updated = groupList.filter(g=>g!==name);
+  await database.ref('hana_ops_live/groups').set(updated);
+  showToast(`그룹 '${name}' 삭제`);
+}
+
+// 브랜드 매핑 모달 (배너에서 직접 열기)
+function openBrandMapModal(){
+  switchModalTab('brandmap', document.querySelectorAll('.modal-tab')[1]);
+  document.getElementById('settingsModal').classList.add('show');
+}
 
 // ═══════════════════════════════════
-// ★ 파일 파싱 (핵심 수정 영역)
+// 파일 파싱
 // ═══════════════════════════════════
 function handleFiles(files){
   const arr=[...files].filter(f=>/\.(xlsx|xls)$/i.test(f.name));
   if(!arr.length){ showToast('xlsx 파일을 선택해주세요'); return; }
-  document.getElementById('pbText').textContent='처리 중...';
-  Promise.all(arr.map(parseXLSX)).then(async results=>{
-    let newDB=[...DB];
-    results.forEach(parsed=>{
-      // ★ 중복 제거: fileType별로 독립된 key 공간 사용
-      // 리오벨: 'R_날짜_채널_주문번호'
-      // 사방넷: 'S_사방넷주문번호' (날짜/채널 불필요 - 사방넷번호가 전역 유니크)
-      const keys=new Set(parsed.map(r=>r._dedupeKey));
-      newDB=newDB.filter(r=>!keys.has(r._dedupeKey));
-      newDB=newDB.concat(parsed);
-    });
-    newDB.sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('pbText').textContent='분석 중...';
 
-    // _dedupeKey는 내부 전용 필드 - 저장 전 제거
-    const cleanDB=newDB.map(({_dedupeKey, ...rest})=>rest);
-
-    await database.ref('hana_ops_live/records').set(cleanDB);
-    document.getElementById('uploadModal').classList.remove('show');
+  Promise.all(arr.map(parseXLSX)).then(results=>{
     document.getElementById('pbText').textContent='';
-    showToast(`동기화 완료! ${results.reduce((s,r)=>s+r.length,0)}건 처리`);
+
+    // 미분류 브랜드 감지
+    const allBrands = new Set(results.flatMap(r=>r.map(rec=>rec.brand)));
+    const newUnmatched = [...allBrands].filter(b=>b && b!=='미분류' && getGroup(b)==='기타');
+
+    if(newUnmatched.length>0){
+      // 팝업 표시
+      _pendingUploadResults = results;
+      showMappingModal(newUnmatched);
+    } else {
+      // 즉시 업로드
+      doUpload(results);
+    }
   }).catch(err=>{
     console.error('Upload error:', err);
     document.getElementById('pbText').textContent='';
-    showToast('업로드 중 오류가 발생했습니다');
+    showToast('업로드 오류');
   });
 }
 
+// ── 즉석 매핑 팝업 ──
+function showMappingModal(unmatched){
+  const opts = groupList.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');
+  document.getElementById('mappingModalList').innerHTML = unmatched.map(b=>`
+    <div class="mapping-brand-row">
+      <span class="mapping-brand-name">${esc(b)}</span>
+      <select class="group-select" id="mmap_${esc(b)}" style="min-width:120px">
+        <option value="">— 기타 유지 —</option>
+        ${opts}
+      </select>
+    </div>`).join('');
+  document.getElementById('uploadModal').classList.remove('show');
+  document.getElementById('mappingModal').classList.add('show');
+}
+
+async function saveMappingAndUpload(){
+  // 선택된 매핑 저장
+  const updated = { ...brandMap };
+  document.querySelectorAll('#mappingModalList select').forEach(sel=>{
+    const brand = sel.id.replace('mmap_','');
+    if(sel.value) updated[brand] = sel.value;
+  });
+  await database.ref('hana_ops_live/brand_map').set(updated);
+  document.getElementById('mappingModal').classList.remove('show');
+
+  const results = _pendingUploadResults;
+  _pendingUploadResults = null;
+  doUpload(results);
+}
+
+function skipMappingAndUpload(){
+  document.getElementById('mappingModal').classList.remove('show');
+  const results = _pendingUploadResults;
+  _pendingUploadResults = null;
+  doUpload(results);
+}
+
+async function doUpload(results){
+  document.getElementById('pbText').textContent='업로드 중...';
+  let newDB=[...DB];
+  results.forEach(parsed=>{
+    const keys=new Set(parsed.map(r=>r._dedupeKey));
+    newDB=newDB.filter(r=>!keys.has(r._dedupeKey));
+    newDB=newDB.concat(parsed);
+  });
+  newDB.sort((a,b)=>a.date.localeCompare(b.date));
+
+  // group 재계산 후 내부 필드 제거
+  const cleanDB=newDB.map(({_dedupeKey,...rest})=>({...rest, group:getGroup(rest.brand)}));
+
+  await database.ref('hana_ops_live/records').set(cleanDB);
+  document.getElementById('uploadModal').classList.remove('show');
+  document.getElementById('pbText').textContent='';
+  showToast(`동기화 완료! ${results.reduce((s,r)=>s+r.length,0)}건 처리`);
+}
+
+// ═══════════════════════════════════
+// 파서
+// ═══════════════════════════════════
 function toNum(v){
   if(v===null||v===undefined||v==='') return 0;
   return parseFloat(String(v).replace(/[,\s₩원]/g,''))||0;
 }
-
-// ─── 날짜 정규화 ───
 function normalizeDate(raw){
   if(!raw) return '';
-  const s = String(raw).trim();
-  // 이미 YYYY-MM-DD 형식
+  const s=String(raw).trim();
   if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0,10);
-  // YYYY/MM/DD
   if(/^\d{4}\/\d{2}\/\d{2}/.test(s)) return s.substring(0,10).replace(/\//g,'-');
-  // 엑셀 시리얼 숫자
-  const num = parseInt(s);
-  if(!isNaN(num) && num > 40000 && num < 60000){
-    const d = new Date((num-25569)*86400*1000);
-    // UTC 보정
-    const y = d.getUTCFullYear();
-    const m = String(d.getUTCMonth()+1).padStart(2,'0');
-    const dd = String(d.getUTCDate()).padStart(2,'0');
-    return `${y}-${m}-${dd}`;
+  const num=parseInt(s);
+  if(!isNaN(num)&&num>40000&&num<60000){
+    const d=new Date((num-25569)*86400*1000);
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
   }
   return '';
 }
@@ -587,51 +899,31 @@ function parseXLSX(file){
     const reader=new FileReader();
     reader.onload=e=>{
       try{
-        const wb=XLSX.read(new Uint8Array(e.target.result),{
-          type:'array',
-          cellDates:false,  // 날짜를 문자열로 받아 직접 처리
-          raw:false
-        });
+        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:false,raw:false});
         const ws=wb.Sheets[wb.SheetNames[0]];
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:false});
         if(rows.length<2){ resolve([]); return; }
 
-        // ★ 파일 타입 감지
-        // 사방넷: 헤더 첫 셀이 'No.'
-        // 리오벨: 헤더 첫 셀이 '년'
-        const header0 = String(rows[0][0]||'').trim();
-        const isSabangnet = (header0 === 'No.');
-        const isRiobell   = (header0 === '년');
+        const header0=String(rows[0][0]||'').trim();
+        const isSabangnet=(header0==='No.');
+        const isRiobell  =(header0==='년');
 
-        if(!isSabangnet && !isRiobell){
+        if(!isSabangnet&&!isRiobell){
           showToast(`⚠️ ${file.name}: 지원하지 않는 파일 형식`);
           resolve([]); return;
         }
 
         const res=[];
-
-        for(let i=1; i<rows.length; i++){
+        for(let i=1;i<rows.length;i++){
           const r=rows[i];
-          if(!r) continue;
-
-          // 빈 행 스킵 (첫 3컬럼 모두 비어있으면)
-          if(!r[0] && !r[1] && !r[2]) continue;
-
-          let record = null;
-
-          if(isSabangnet){
-            record = parseSabangnetRow(r);
-          } else {
-            record = parseRiobellRow(r);
-          }
-
+          if(!r||(!r[0]&&!r[1]&&!r[2])) continue;
+          const record=isSabangnet?parseSabangnetRow(r):parseRiobellRow(r);
           if(record) res.push(record);
         }
-
-        console.log(`[${file.name}] ${isSabangnet?'사방넷':'리오벨'} → ${res.length}건 파싱`);
+        console.log(`[${file.name}] ${isSabangnet?'사방넷':'리오벨'} → ${res.length}건`);
         resolve(res);
-      } catch(err){
-        console.error('parseXLSX error:', err);
+      }catch(err){
+        console.error('parseXLSX error:',err);
         showToast(`⚠️ ${file.name} 파싱 오류`);
         resolve([]);
       }
@@ -640,145 +932,96 @@ function parseXLSX(file){
   });
 }
 
-// ─────────────────────────────────────────────────────────
-// ★ 사방넷 주문서 파서
-// 헤더: No. | 쇼핑몰명(1) | 브랜드명 | 주문구분 | 주문일시 |
-//       상품코드(사방넷) | 주문번호(쇼핑몰) | 주문번호(사방넷) |
-//       자체상품코드 | 상품명(확정) | 옵션(수집) | 수량 |
-//       주문자명 | ... | 판매가(수집) | ...
-// 인덱스: [0]No [1]쇼핑몰명 [2]브랜드명 [3]주문구분 [4]주문일시
-//         [5]상품코드사방넷 [6]주문번호쇼핑몰 [7]주문번호사방넷
-//         [8]자체상품코드 [9]상품명 [10]옵션 [11]수량
-//         [22]배송비 [23]판매가(수집) [24]공급단가 [25]결제금액
-// ─────────────────────────────────────────────────────────
 function parseSabangnetRow(r){
-  const dateStr = normalizeDate(r[4]);
-  if(!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
-
-  const orderStatus = String(r[3]||'').trim();
-  // 반품/취소 판정
-  const isReturn = orderStatus.includes('반품') || orderStatus.includes('취소') || orderStatus.includes('클레임');
-  const status   = isReturn ? 'return' : 'complete';
-
-  const brand   = String(r[2]||'미분류').trim();
-  const channel = String(r[1]||'기타').trim();
-  const product = String(r[9]||'').trim();
-  // ★ 사방넷 고유번호(전역 유니크) 사용
-  const orderId = String(r[7]||'').trim();
-  const qty     = toNum(r[11]) || 1;
-  const price   = toNum(r[23]); // 판매가(수집)
-
-  const completeAmt = status==='complete' ? price * qty : 0;
-  const retAmt      = status==='return'   ? price * qty : 0;
-
-  // ★ 사방넷 dedupeKey: 파일타입 접두사 + 사방넷 주문번호
-  const _dedupeKey = `S_${orderId}`;
-
+  const dateStr=normalizeDate(r[4]);
+  if(!dateStr||!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  const statusStr=String(r[3]||'').trim();
+  const isReturn =statusStr.includes('반품')||statusStr.includes('취소')||statusStr.includes('클레임');
+  const status   =isReturn?'return':'complete';
+  const brand    =String(r[2]||'미분류').trim();
+  const channel  =String(r[1]||'기타').trim();
+  const product  =String(r[9]||'').trim();
+  const orderId  =String(r[7]||'').trim();
+  const qty      =toNum(r[11])||1;
+  const price    =toNum(r[23]);
   return {
-    date: dateStr,
-    ym: dateStr.substring(0,7),
+    date:dateStr, ym:dateStr.substring(0,7),
     brand, channel, product, orderId, status,
-    group: getGroup(brand),
-    completeAmt, retAmt, qty,
-    fileType: 'sabangnet',
-    _dedupeKey
+    group:getGroup(brand),
+    completeAmt:status==='complete'?price*qty:0,
+    retAmt:     status==='return'  ?price*qty:0,
+    qty, fileType:'sabangnet',
+    _dedupeKey:`S_${orderId}`
   };
 }
 
-// ─────────────────────────────────────────────────────────
-// ★ 리오벨 매출 파일 파서
-// 헤더: 년[0] 월[1] 일[2] 구분[3] 날짜[4] 매출처[5] 특이사항[6]
-//       주문번호[7] 주문일시[8] 주문자[9] ...
-//       총상품가격[17] 브랜드명[18] 상품명[19] 상품코드[20] 옵션명[21]
-//       판매가[22] 수량[23] (빈칸)[24] 배송사[25] 송장번호[26]
-//       (빈)[27] (빈)[28] 주문상태[29] 반품금액[30] 반품수량[31]
-//       취소수량[32] 취소금액[33] 판매가확인요망[34]
-// ─────────────────────────────────────────────────────────
 function parseRiobellRow(r){
-  // ★ 날짜: r[8] = 주문일시 (YYYY-MM-DD 또는 YYYY-MM-DD HH:MM)
-  // r[4] = 엑셀 날짜 시리얼 숫자 (백업용)
-  let dateStr = normalizeDate(r[8]);
-  if(!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)){
-    // r[4]로 폴백
-    dateStr = normalizeDate(r[4]);
-  }
-  if(!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
-
-  // ★ 주문상태: r[29]
-  const statusStr = String(r[29]||'').trim();
-  const isReturn  = statusStr.includes('반품') || statusStr.includes('취소') || statusStr.includes('클레임');
-  const status    = isReturn ? 'return' : 'complete';
-
-  // ★ 브랜드: r[18], 채널: r[5], 상품명: r[19], 주문번호: r[7]
-  const brand   = String(r[18]||'미분류').trim();
-  const channel = String(r[5]||'기타').trim();
-  const product = String(r[19]||'').trim();
-  const orderId = String(r[7]||'').trim();
-
-  // ★ 수량: r[23], 판매가: r[22]
-  const qty   = toNum(r[23]) || 1;
-  const price = toNum(r[22]);
-
-  // ★ 반품/취소금액: r[30]=반품금액, r[33]=취소금액
-  const retRaw = toNum(r[30]);
-  const cncRaw = toNum(r[33]);
-
-  const completeAmt = status==='complete' ? price * qty : 0;
-  // 반품금액이 있으면 우선 사용, 없으면 취소금액, 그것도 없으면 단가*수량
-  const retAmt = isReturn ? (retRaw || cncRaw || price * qty) : 0;
-
-  // ★ 리오벨 dedupeKey: 파일타입 접두사 + 날짜 + 채널 + 주문번호
-  const _dedupeKey = `R_${dateStr}_${channel}_${orderId}`;
-
+  let dateStr=normalizeDate(r[8]);
+  if(!dateStr||!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) dateStr=normalizeDate(r[4]);
+  if(!dateStr||!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  const statusStr=String(r[29]||'').trim();
+  const isReturn =statusStr.includes('반품')||statusStr.includes('취소')||statusStr.includes('클레임');
+  const status   =isReturn?'return':'complete';
+  const brand    =String(r[18]||'미분류').trim();
+  const channel  =String(r[5]||'기타').trim();
+  const product  =String(r[19]||'').trim();
+  const orderId  =String(r[7]||'').trim();
+  const qty      =toNum(r[23])||1;
+  const price    =toNum(r[22]);
+  const retRaw   =toNum(r[30]);
+  const cncRaw   =toNum(r[33]);
   return {
-    date: dateStr,
-    ym: dateStr.substring(0,7),
+    date:dateStr, ym:dateStr.substring(0,7),
     brand, channel, product, orderId, status,
-    group: getGroup(brand),
-    completeAmt, retAmt, qty,
-    fileType: 'riobell',
-    _dedupeKey
+    group:getGroup(brand),
+    completeAmt:status==='complete'?price*qty:0,
+    retAmt:     isReturn?(retRaw||cncRaw||price*qty):0,
+    qty, fileType:'riobell',
+    _dedupeKey:`R_${dateStr}_${channel}_${orderId}`
   };
 }
 
 // ═══════════════════════════════════
-// 데이터 필터링
+// 데이터 필터
 // ═══════════════════════════════════
 function getData(){
   const from=document.getElementById('dateFrom').value;
-  const to=document.getElementById('dateTo').value;
+  const to  =document.getElementById('dateTo').value;
   return DB.filter(r=>{
     if(from&&r.date<from) return false;
-    if(to&&r.date>to)     return false;
+    if(to  &&r.date>to  ) return false;
     if(curGroup!=='all'&&r.group!==curGroup) return false;
     return true;
   });
 }
 
 // ═══════════════════════════════════
-// 목표 관련
+// 목표
 // ═══════════════════════════════════
-function getTargetGoal(from, to, grp){
+function getTargetGoal(from,to,grp){
   if(!from||!to) return 0;
-  let cur=new Date(new Date(from).getFullYear(), new Date(from).getMonth(), 1);
-  const end=new Date(new Date(to).getFullYear(), new Date(to).getMonth(), 1);
+  let cur=new Date(new Date(from).getFullYear(),new Date(from).getMonth(),1);
+  const end=new Date(new Date(to).getFullYear(),new Date(to).getMonth(),1);
   let total=0;
   while(cur<=end){
     const ym=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0');
     const g=monthlyGoals[ym]||{};
-    total += grp==='all' ? (g['신원']||0)+(g['라성']||0)+(g['한아물산']||0) : (g[grp]||0);
+    total+=grp==='all'?groupList.reduce((s,gr)=>s+(g[gr]||0),0):(g[grp]||0);
     cur.setMonth(cur.getMonth()+1);
   }
   return total;
 }
 function buildGoalTable(){
-  const y=document.getElementById('goalYearSelect').value; let html='';
+  const y=document.getElementById('goalYearSelect').value;
+  // 헤더 동적 업데이트
+  groupList.forEach((g,i)=>{ const el=document.getElementById(`goalHeader_${i}`); if(el) el.textContent=g; });
+  let html='';
   for(let m=1;m<=12;m++){
     const ym=`${y}-${String(m).padStart(2,'0')}`; const g=monthlyGoals[ym]||{};
-    html+=`<tr><td style="text-align:center">${m}월</td>
-      <td><input type="number" id="g_s_${m}" value="${g['신원']||''}" style="width:100%;text-align:right;border:1px solid var(--border);border-radius:4px;padding:4px 6px"></td>
-      <td><input type="number" id="g_l_${m}" value="${g['라성']||''}" style="width:100%;text-align:right;border:1px solid var(--border);border-radius:4px;padding:4px 6px"></td>
-      <td><input type="number" id="g_h_${m}" value="${g['한아물산']||''}" style="width:100%;text-align:right;border:1px solid var(--border);border-radius:4px;padding:4px 6px"></td></tr>`;
+    html+=`<tr><td style="text-align:center">${m}월</td>`
+      +groupList.map((gr,i)=>
+        `<td><input type="number" id="g_${i}_${m}" value="${g[gr]||''}" style="width:100%;text-align:right;border:1px solid var(--border);border-radius:4px;padding:4px 6px"></td>`
+      ).join('')+`</tr>`;
   }
   document.getElementById('goalTableBody').innerHTML=html;
 }
@@ -787,11 +1030,10 @@ async function saveGoals(){
   const y=document.getElementById('goalYearSelect').value;
   for(let m=1;m<=12;m++){
     const ym=`${y}-${String(m).padStart(2,'0')}`;
-    const s=Number(document.getElementById(`g_s_${m}`).value)||0;
-    const l=Number(document.getElementById(`g_l_${m}`).value)||0;
-    const h=Number(document.getElementById(`g_h_${m}`).value)||0;
-    if(s>0||l>0||h>0) monthlyGoals[ym]={'신원':s,'라성':l,'한아물산':h};
-    else delete monthlyGoals[ym];
+    const vals={};
+    groupList.forEach((g,i)=>{ vals[g]=Number(document.getElementById(`g_${i}_${m}`).value)||0; });
+    const hasVal=Object.values(vals).some(v=>v>0);
+    if(hasVal) monthlyGoals[ym]=vals; else delete monthlyGoals[ym];
   }
   await database.ref('hana_ops_live/goals').set(monthlyGoals);
   document.getElementById('goalModal').classList.remove('show');
@@ -803,12 +1045,12 @@ async function saveGoals(){
 // ═══════════════════════════════════
 function renderAll(){
   const data=getData();
-  const completeRows=data.filter(r=>r.status==='complete');
-  const returnRows  =data.filter(r=>r.status==='return');
-  const cAmt=completeRows.reduce((s,r)=>s+r.completeAmt,0);
-  const rAmt=returnRows.reduce((s,r)=>s+r.retAmt,0);
-  const cCnt=completeRows.reduce((s,r)=>s+r.qty,0);
-  const rCnt=returnRows.reduce((s,r)=>s+r.qty,0);
+  const cRows=data.filter(r=>r.status==='complete');
+  const rRows=data.filter(r=>r.status==='return');
+  const cAmt=cRows.reduce((s,r)=>s+r.completeAmt,0);
+  const rAmt=rRows.reduce((s,r)=>s+r.retAmt,0);
+  const cCnt=cRows.reduce((s,r)=>s+r.qty,0);
+  const rCnt=rRows.reduce((s,r)=>s+r.qty,0);
   const retRate=cAmt>0?Math.round(rAmt/cAmt*100):0;
 
   document.getElementById('kpi-complete').textContent=`₩${won(cAmt)}`;
@@ -819,7 +1061,7 @@ function renderAll(){
     `${rCnt.toLocaleString()}건 <span class="badge ${retRate>=20?'badge-danger':'badge-success'}">반품 ${retRate}%</span>`;
   document.getElementById('kpi-total-cnt').textContent=(cCnt+rCnt).toLocaleString();
 
-  const tgt=getTargetGoal(document.getElementById('dateFrom').value, document.getElementById('dateTo').value, curGroup);
+  const tgt=getTargetGoal(document.getElementById('dateFrom').value,document.getElementById('dateTo').value,curGroup);
   if(tgt>0){
     const achv=Math.round(cAmt/tgt*100);
     document.getElementById('kpi-goal-pct').textContent=`${achv}%`;
@@ -837,9 +1079,7 @@ function renderAll(){
   if(curTab==='heatmap')     { renderHeatmap(data); }
 }
 
-// ═══════════════════════════════════
-// Overview 차트
-// ═══════════════════════════════════
+// ── Overview 차트 ──
 function renderOverviewChart(data){
   const dayMap={};
   data.forEach(r=>{
@@ -847,39 +1087,19 @@ function renderOverviewChart(data){
     if(r.status==='complete') dayMap[r.date].cAmt+=r.completeAmt;
     if(r.status==='return')   dayMap[r.date].rAmt+=r.retAmt;
   });
-
-  let chartDates=Object.keys(dayMap).sort().slice(-30);
-  if(window.innerWidth<=768) chartDates=chartDates.slice(-7);
-
-  const chartLabels=chartDates.map(d=>[d.slice(5), toManWon(dayMap[d].cAmt)]);
-
+  let dates=Object.keys(dayMap).sort().slice(-30);
+  if(window.innerWidth<=768) dates=dates.slice(-7);
   if(chartInstance) chartInstance.destroy();
   chartInstance=new Chart(document.getElementById('mainChart').getContext('2d'),{
     type:'bar',
-    data:{
-      labels:chartLabels,
-      datasets:[{
-        label:'완료금액',
-        data:chartDates.map(d=>dayMap[d].cAmt),
-        backgroundColor:'#DBEAFE',
-        hoverBackgroundColor:'#2563EB',
-        borderRadius:4
-      }]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{
-        x:{ticks:{font:{size:11,family:"'DM Mono',monospace"}}},
-        y:{ticks:{callback:v=>wonK(v)}}
-      }
-    }
+    data:{labels:dates.map(d=>[d.slice(5),toManWon(dayMap[d].cAmt)]),
+          datasets:[{label:'완료금액',data:dates.map(d=>dayMap[d].cAmt),backgroundColor:'#DBEAFE',hoverBackgroundColor:'#2563EB',borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+             scales:{x:{ticks:{font:{size:11,family:"'DM Mono',monospace"}}},y:{ticks:{callback:v=>wonK(v)}}}}
   });
 }
 
-// ═══════════════════════════════════
-// 브랜드 카드
-// ═══════════════════════════════════
+// ── 브랜드 카드 ──
 function renderBrands(data){
   const bMap={};
   data.forEach(r=>{
@@ -888,17 +1108,22 @@ function renderBrands(data){
     if(r.status==='return')   bMap[r.brand].rAmt+=r.retAmt;
   });
   document.getElementById('brandGrid').innerHTML=
-    Object.entries(bMap).sort((a,b)=>b[1].cAmt-a[1].cAmt).map(([name,v])=>
-      `<div class="brand-card" onclick="renderBrandDetail('${esc(name)}')">
-        <div class="bc-header"><b>${esc(name)}</b><span class="bc-tag">${esc(v.group)}</span></div>
+    Object.entries(bMap).sort((a,b)=>b[1].cAmt-a[1].cAmt).map(([name,v])=>{
+      const isUnmatched=v.group==='기타';
+      return `<div class="brand-card ${isUnmatched?'unmatched':''}" onclick="renderBrandDetail('${esc(name)}')">
+        <div class="bc-header">
+          <b>${esc(name)}</b>
+          <span class="bc-tag ${isUnmatched?'badge-danger':''}">${isUnmatched?'⚠️ 미분류':esc(v.group)}</span>
+        </div>
         <div class="bc-amt">₩${won(v.cAmt)}</div>
         <div style="font-size:11px;color:var(--text-sub)">반품 ₩${won(v.rAmt)}</div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 }
 
 function renderBrandDetail(name){
   document.querySelectorAll('.brand-card').forEach(c=>{
-    c.classList.toggle('active', c.querySelector('b')&&c.querySelector('b').textContent===name);
+    c.classList.toggle('active',c.querySelector('b')?.textContent===name);
   });
   const rows=getData().filter(r=>r.brand===name);
   const cAmt=rows.filter(r=>r.status==='complete').reduce((s,r)=>s+r.completeAmt,0);
@@ -918,215 +1143,146 @@ function renderBrandDetail(name){
       </div>`).join('');
 }
 
-// ═══════════════════════════════════
-// 일자별 매출
-// ═══════════════════════════════════
-function setDailyView(view, el){
+// ── 일자별 매출 ──
+function setDailyView(view,el){
   dailyView=view;
   document.querySelectorAll('#dvtToggle .dvt-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
   renderDailySales();
 }
-
 function renderDailySales(data){
   if(!data) data=getData();
   const sortDesc=document.getElementById('dailySortSel').value==='date_desc';
-
   const dayMap={};
   data.forEach(r=>{
     if(!dayMap[r.date]) dayMap[r.date]={cAmt:0,rAmt:0,cCnt:0,rCnt:0,brands:{}};
     const d=dayMap[r.date];
-    if(r.status==='complete'){ d.cAmt+=r.completeAmt; d.cCnt+=r.qty; }
-    else                     { d.rAmt+=r.retAmt;      d.rCnt+=r.qty; }
+    if(r.status==='complete'){d.cAmt+=r.completeAmt;d.cCnt+=r.qty;}
+    else{d.rAmt+=r.retAmt;d.rCnt+=r.qty;}
     if(!d.brands[r.brand]) d.brands[r.brand]=0;
     if(r.status==='complete') d.brands[r.brand]+=r.completeAmt;
   });
-
   let dates=Object.keys(dayMap).sort();
   if(sortDesc) dates=[...dates].reverse();
 
-  // ── 차트 ──
+  // 차트
   const chartWrap=document.getElementById('dailySalesChartWrap');
-  chartWrap.style.display=(dailyView==='chart')?'block':'none';
+  chartWrap.style.display=dailyView==='chart'?'block':'none';
   if(dailyView==='chart'){
-    let chartDates=[...dates].reverse();
-    if(window.innerWidth<=768) chartDates=chartDates.slice(-7);
-
-    const chartLabels=chartDates.map(d=>[d.slice(5), toManWon(dayMap[d].cAmt)]);
-
+    let cd=[...dates].reverse();
+    if(window.innerWidth<=768) cd=cd.slice(-7);
     if(dailyChartInstance) dailyChartInstance.destroy();
     dailyChartInstance=new Chart(document.getElementById('dailySalesChart').getContext('2d'),{
       type:'bar',
-      data:{
-        labels:chartLabels,
-        datasets:[
-          {label:'완료금액',data:chartDates.map(d=>dayMap[d].cAmt),backgroundColor:'#DBEAFE',hoverBackgroundColor:'#2563EB',borderRadius:3,yAxisID:'y'},
-          {label:'반품금액',data:chartDates.map(d=>-dayMap[d].rAmt),backgroundColor:'#FEE2E2',hoverBackgroundColor:'#DC2626',borderRadius:3,yAxisID:'y'}
-        ]
-      },
-      options:{
-        responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{position:'bottom',labels:{font:{family:'Noto Sans KR',size:12}}}},
-        scales:{
-          x:{ticks:{font:{size:11,family:"'DM Mono',monospace"}}},
-          y:{ticks:{callback:v=>wonK(Math.abs(v))}}
-        }
-      }
+      data:{labels:cd.map(d=>[d.slice(5),toManWon(dayMap[d].cAmt)]),
+            datasets:[
+              {label:'완료금액',data:cd.map(d=>dayMap[d].cAmt),backgroundColor:'#DBEAFE',hoverBackgroundColor:'#2563EB',borderRadius:3,yAxisID:'y'},
+              {label:'반품금액',data:cd.map(d=>-dayMap[d].rAmt),backgroundColor:'#FEE2E2',hoverBackgroundColor:'#DC2626',borderRadius:3,yAxisID:'y'}
+            ]},
+      options:{responsive:true,maintainAspectRatio:false,
+               plugins:{legend:{position:'bottom',labels:{font:{family:'Noto Sans KR',size:12}}}},
+               scales:{x:{ticks:{font:{size:11,family:"'DM Mono',monospace"}}},y:{ticks:{callback:v=>wonK(Math.abs(v))}}}}
     });
   }
 
-  // ── 데스크톱 테이블 ──
+  // 테이블
   const tWrap=document.getElementById('dailySalesTableWrap');
-  tWrap.style.display=(dailyView==='table')?'block':'none';
+  tWrap.style.display=dailyView==='table'?'block':'none';
   if(dailyView==='table'){
     let totC=0,totR=0,totCC=0,totRC=0;
-    dates.forEach(d=>{ totC+=dayMap[d].cAmt; totR+=dayMap[d].rAmt; totCC+=dayMap[d].cCnt; totRC+=dayMap[d].rCnt; });
-    const retRate=totC>0?Math.round(totR/totC*100):0;
+    dates.forEach(d=>{totC+=dayMap[d].cAmt;totR+=dayMap[d].rAmt;totCC+=dayMap[d].cCnt;totRC+=dayMap[d].rCnt;});
+    const rr=totC>0?Math.round(totR/totC*100):0;
     document.getElementById('dailySalesTable').innerHTML=`
-      <thead><tr>
-        <th>날짜</th><th>완료금액</th><th>완료건수</th><th>반품금액</th><th>반품건수</th><th>반품률</th><th>순매출</th><th>주요 브랜드</th>
-      </tr></thead>
-      <tbody>
-        ${dates.map(d=>{
-          const v=dayMap[d];
-          const rr=v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0;
-          const topBrand=Object.entries(v.brands).sort((a,b)=>b[1]-a[1])[0];
-          return `<tr>
-            <td style="text-align:left;font-family:'DM Mono',monospace;font-weight:600">${d}</td>
-            <td class="text-primary" style="font-family:'DM Mono',monospace">₩${won(v.cAmt)}</td>
-            <td>${v.cCnt.toLocaleString()}</td>
-            <td class="text-danger" style="font-family:'DM Mono',monospace">${v.rAmt>0?'₩'+won(v.rAmt):'-'}</td>
-            <td>${v.rCnt>0?v.rCnt:'-'}</td>
-            <td><span class="badge ${rr>=20?'badge-danger':'badge-success'}">${rr}%</span></td>
-            <td style="font-weight:700;font-family:'DM Mono',monospace">₩${won(v.cAmt-v.rAmt)}</td>
-            <td style="text-align:left;color:var(--text-sub)">${topBrand?esc(topBrand[0]):'-'}</td>
-          </tr>`;
-        }).join('')}
-      </tbody>
+      <thead><tr><th>날짜</th><th>완료금액</th><th>완료건수</th><th>반품금액</th><th>반품건수</th><th>반품률</th><th>순매출</th><th>주요 브랜드</th></tr></thead>
+      <tbody>${dates.map(d=>{
+        const v=dayMap[d]; const drr=v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0;
+        const top=Object.entries(v.brands).sort((a,b)=>b[1]-a[1])[0];
+        return `<tr>
+          <td style="text-align:left;font-family:'DM Mono',monospace;font-weight:600">${d}</td>
+          <td class="text-primary" style="font-family:'DM Mono',monospace">₩${won(v.cAmt)}</td>
+          <td>${v.cCnt.toLocaleString()}</td>
+          <td class="text-danger" style="font-family:'DM Mono',monospace">${v.rAmt>0?'₩'+won(v.rAmt):'-'}</td>
+          <td>${v.rCnt>0?v.rCnt:'-'}</td>
+          <td><span class="badge ${drr>=20?'badge-danger':'badge-success'}">${drr}%</span></td>
+          <td style="font-weight:700;font-family:'DM Mono',monospace">₩${won(v.cAmt-v.rAmt)}</td>
+          <td style="text-align:left;color:var(--text-sub)">${top?esc(top[0]):'-'}</td>
+        </tr>`;
+      }).join('')}</tbody>
       <tfoot><tr>
         <td style="text-align:left">합계</td>
-        <td class="text-primary">₩${won(totC)}</td>
-        <td>${totCC.toLocaleString()}</td>
-        <td class="text-danger">${totR>0?'₩'+won(totR):'-'}</td>
-        <td>${totRC>0?totRC:'-'}</td>
-        <td><span class="badge ${retRate>=20?'badge-danger':'badge-success'}">${retRate}%</span></td>
-        <td style="font-weight:700">₩${won(totC-totR)}</td>
-        <td></td>
+        <td class="text-primary">₩${won(totC)}</td><td>${totCC.toLocaleString()}</td>
+        <td class="text-danger">${totR>0?'₩'+won(totR):'-'}</td><td>${totRC>0?totRC:'-'}</td>
+        <td><span class="badge ${rr>=20?'badge-danger':'badge-success'}">${rr}%</span></td>
+        <td style="font-weight:700">₩${won(totC-totR)}</td><td></td>
       </tr></tfoot>`;
   }
 
-  // ── 모바일 카드뷰 ──
+  // 모바일 카드
   document.getElementById('dailySalesCards').innerHTML=dates.map(d=>{
-    const v=dayMap[d];
-    const rr=v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0;
-    const topBrands=Object.entries(v.brands).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    const v=dayMap[d]; const drr=v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0;
+    const tops=Object.entries(v.brands).sort((a,b)=>b[1]-a[1]).slice(0,3);
     return `<div class="day-card">
-      <div class="day-card-header">
-        <span class="day-card-date">${d}</span>
-        <span class="day-card-total">₩${won(v.cAmt)}</span>
-      </div>
+      <div class="day-card-header"><span class="day-card-date">${d}</span><span class="day-card-total">₩${won(v.cAmt)}</span></div>
       <div class="day-card-rows">
         <div class="day-card-item"><div class="day-card-item-label">순매출</div><div class="day-card-item-val text-primary">₩${won(v.cAmt-v.rAmt)}</div></div>
         <div class="day-card-item"><div class="day-card-item-label">반품금액</div><div class="day-card-item-val text-danger">${v.rAmt>0?'₩'+won(v.rAmt):'-'}</div></div>
         <div class="day-card-item"><div class="day-card-item-label">완료건수</div><div class="day-card-item-val">${v.cCnt}건</div></div>
-        <div class="day-card-item"><div class="day-card-item-label">반품률</div><div class="day-card-item-val ${rr>=20?'text-danger':'text-success'}">${rr}%</div></div>
+        <div class="day-card-item"><div class="day-card-item-label">반품률</div><div class="day-card-item-val ${drr>=20?'text-danger':'text-success'}">${drr}%</div></div>
       </div>
-      ${topBrands.length?`<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text-sub)">
-        ${topBrands.map(([b,a])=>`<span style="margin-right:8px">${esc(b)} ₩${won(a)}</span>`).join('')}
+      ${tops.length?`<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text-sub)">
+        ${tops.map(([b,a])=>`<span style="margin-right:8px">${esc(b)} ₩${won(a)}</span>`).join('')}
       </div>`:''}
     </div>`;
   }).join('');
 }
 
-// ═══════════════════════════════════
-// 피벗
-// ═══════════════════════════════════
+// ── 피벗 ──
 function renderPivot(data){
   if(!data) data=getData();
-  const pivot=document.getElementById('pivotSelect').value;
-  const wrap=document.getElementById('pivotTableWrap');
-
-  const keyMap={
-    product_channel:['product','channel'],
-    product_brand:  ['product','brand'],
-    date_brand:     ['date','brand'],
-    date_channel:   ['date','channel'],
-    brand_channel:  ['brand','channel'],
-    channel_brand:  ['channel','brand']
-  };
-  const labelMap={ date:'날짜', product:'상품명', brand:'브랜드', channel:'채널' };
-  const [rowKey,colKey]=keyMap[pivot]||['date','brand'];
-
-  const completeData=data.filter(r=>r.status==='complete');
-  const rowSet=new Set(), colSet=new Set();
-  completeData.forEach(r=>{ rowSet.add(r[rowKey]); colSet.add(r[colKey]); });
-  const rows=[...rowSet].sort(), cols=[...colSet].sort();
-
+  const keyMap={product_channel:['product','channel'],product_brand:['product','brand'],
+    date_brand:['date','brand'],date_channel:['date','channel'],
+    brand_channel:['brand','channel'],channel_brand:['channel','brand']};
+  const labelMap={date:'날짜',product:'상품명',brand:'브랜드',channel:'채널'};
+  const [rowKey,colKey]=keyMap[document.getElementById('pivotSelect').value]||['date','brand'];
+  const cd=data.filter(r=>r.status==='complete');
+  const rows=[...new Set(cd.map(r=>r[rowKey]))].sort();
+  const cols=[...new Set(cd.map(r=>r[colKey]))].sort();
   const mat={};
-  completeData.forEach(r=>{
-    const rk=r[rowKey], ck=r[colKey];
-    if(!mat[rk]) mat[rk]={};
-    mat[rk][ck]=(mat[rk][ck]||0)+r.completeAmt;
-  });
-
+  cd.forEach(r=>{ if(!mat[r[rowKey]]) mat[r[rowKey]]={};  mat[r[rowKey]][r[colKey]]=(mat[r[rowKey]][r[colKey]]||0)+r.completeAmt; });
   const rowTotals={}; rows.forEach(r=>{ rowTotals[r]=cols.reduce((s,c)=>s+(mat[r]&&mat[r][c]||0),0); });
-  const sortedRows=rows.sort((a,b)=>(rowTotals[b]||0)-(rowTotals[a]||0));
+  const sortedRows=[...rows].sort((a,b)=>(rowTotals[b]||0)-(rowTotals[a]||0));
   const colTotals={}; cols.forEach(c=>{ colTotals[c]=rows.reduce((s,r)=>s+(mat[r]&&mat[r][c]||0),0); });
-  const grandTotal=Object.values(rowTotals).reduce((s,v)=>s+v,0);
-
-  wrap.innerHTML=`<table class="data-table">
-    <thead><tr>
-      <th>${labelMap[rowKey]||rowKey}</th>
-      <th>합계</th>
-      ${cols.map(c=>`<th>${esc(c)}</th>`).join('')}
-    </tr></thead>
-    <tbody>
-      ${sortedRows.map(r=>`<tr>
-        <td style="text-align:left" title="${esc(r)}">${esc(String(r).slice(0,20))}${String(r).length>20?'…':''}</td>
-        <td style="font-weight:700;font-family:'DM Mono',monospace">₩${won(rowTotals[r])}</td>
-        ${cols.map(c=>`<td style="font-family:'DM Mono',monospace;color:${mat[r]&&mat[r][c]?'var(--text-main)':'var(--text-light)'}">
-          ${mat[r]&&mat[r][c]?'₩'+won(mat[r][c]):'-'}
-        </td>`).join('')}
-      </tr>`).join('')}
-    </tbody>
-    <tfoot><tr>
-      <td style="text-align:left">합계</td>
-      <td>₩${won(grandTotal)}</td>
+  const grand=Object.values(rowTotals).reduce((s,v)=>s+v,0);
+  document.getElementById('pivotTableWrap').innerHTML=`<table class="data-table">
+    <thead><tr><th>${labelMap[rowKey]}</th><th>합계</th>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead>
+    <tbody>${sortedRows.map(r=>`<tr>
+      <td style="text-align:left" title="${esc(r)}">${esc(String(r).slice(0,20))}${String(r).length>20?'…':''}</td>
+      <td style="font-weight:700;font-family:'DM Mono',monospace">₩${won(rowTotals[r])}</td>
+      ${cols.map(c=>`<td style="font-family:'DM Mono',monospace;color:${mat[r]&&mat[r][c]?'var(--text-main)':'var(--text-light)'}">
+        ${mat[r]&&mat[r][c]?'₩'+won(mat[r][c]):'-'}</td>`).join('')}
+    </tr>`).join('')}</tbody>
+    <tfoot><tr><td style="text-align:left">합계</td><td>₩${won(grand)}</td>
       ${cols.map(c=>`<td style="font-family:'DM Mono',monospace">₩${won(colTotals[c]||0)}</td>`).join('')}
     </tr></tfoot>
   </table>`;
 }
 
-// ═══════════════════════════════════
-// 히트맵
-// ═══════════════════════════════════
+// ── 히트맵 ──
 function renderHeatmap(data){
   if(!data) data=getData();
-  const wrap=document.getElementById('heatmapWrap');
-  const completeData=data.filter(r=>r.status==='complete');
-  const brands=[...new Set(completeData.map(r=>r.brand))];
-  const channels=[...new Set(completeData.map(r=>r.channel))];
+  const cd=data.filter(r=>r.status==='complete');
+  const brands=[...new Set(cd.map(r=>r.brand))].sort();
+  const channels=[...new Set(cd.map(r=>r.channel))].sort();
   const mat={};
-  completeData.forEach(r=>{
-    if(!mat[r.brand]) mat[r.brand]={};
-    mat[r.brand][r.channel]=(mat[r.brand][r.channel]||0)+r.completeAmt;
-  });
+  cd.forEach(r=>{ if(!mat[r.brand]) mat[r.brand]={}; mat[r.brand][r.channel]=(mat[r.brand][r.channel]||0)+r.completeAmt; });
   const maxVal=Math.max(...brands.flatMap(b=>channels.map(c=>mat[b]&&mat[b][c]||0)));
-
-  wrap.innerHTML=`<table class="data-table">
+  document.getElementById('heatmapWrap').innerHTML=`<table class="data-table">
     <thead><tr><th>브랜드</th>${channels.map(c=>`<th style="font-size:11px">${esc(c)}</th>`).join('')}</tr></thead>
-    <tbody>
-      ${brands.sort().map(b=>`<tr>
-        <td style="text-align:left;font-weight:600">${esc(b)}</td>
-        ${channels.map(c=>{
-          const v=mat[b]&&mat[b][c]||0;
-          const intensity=maxVal>0?v/maxVal:0;
-          const alpha=intensity*0.85+0.03;
-          return `<td style="background:rgba(37,99,235,${alpha});color:${intensity>0.5?'#fff':'var(--text-main)'};font-family:'DM Mono',monospace;font-size:12px">
-            ${v>0?'₩'+won(v):'-'}
-          </td>`;
-        }).join('')}
-      </tr>`).join('')}
-    </tbody>
+    <tbody>${brands.map(b=>`<tr>
+      <td style="text-align:left;font-weight:600">${esc(b)}</td>
+      ${channels.map(c=>{ const v=mat[b]&&mat[b][c]||0; const alpha=maxVal>0?(v/maxVal)*0.85+0.03:0.03;
+        return `<td style="background:rgba(37,99,235,${alpha});color:${v/maxVal>0.5?'#fff':'var(--text-main)'};font-family:'DM Mono',monospace;font-size:12px">
+          ${v>0?'₩'+won(v):'-'}</td>`; }).join('')}
+    </tr>`).join('')}</tbody>
   </table>`;
 }
 
@@ -1135,10 +1291,9 @@ function renderHeatmap(data){
 // ═══════════════════════════════════
 function backupData(){
   if(!DB.length){ showToast('백업할 데이터가 없습니다'); return; }
-  const blob=new Blob([JSON.stringify({version:'5.5',db:DB,goals:monthlyGoals})],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({version:'5.7',db:DB,goals:monthlyGoals,brandMap,groups:groupList})],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`HanA_OPS_Backup_${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
+  a.download=`HanA_OPS_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
   document.getElementById('settingsModal').classList.remove('show');
 }
 function restoreData(event){
@@ -1150,6 +1305,8 @@ function restoreData(event){
       if(p.db&&Array.isArray(p.db)){
         await database.ref('hana_ops_live/records').set(p.db);
         await database.ref('hana_ops_live/goals').set(p.goals||{});
+        if(p.brandMap) await database.ref('hana_ops_live/brand_map').set(p.brandMap);
+        if(p.groups)   await database.ref('hana_ops_live/groups').set(p.groups);
         showToast('복원 완료!');
       } else { showToast('올바른 백업 파일이 아닙니다'); }
     }catch(err){ showToast('파일 오류'); }
@@ -1165,13 +1322,10 @@ async function clearData(){
 }
 
 // ═══════════════════════════════════
-// 초기화 및 반응형
+// 초기화
 // ═══════════════════════════════════
 setQuickDate('thisMonth');
-
-window.addEventListener('resize', ()=>{
-  if(curTab==='overview'||curTab==='daily_sales') renderAll();
-});
+window.addEventListener('resize',()=>{ if(curTab==='overview'||curTab==='daily_sales') renderAll(); });
 </script>
 </body>
 </html>
