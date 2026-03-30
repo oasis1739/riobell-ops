@@ -873,39 +873,49 @@ function normalizeDate(raw){
   return '';
 }
 
-function parseXLSX(file){
-  return new Promise(resolve=>{
-    const reader=new FileReader();
-    reader.onload=e=>{
-      try{
-        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:false,raw:false});
-        const ws=wb.Sheets[wb.SheetNames[0]];
-        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:false});
-        if(rows.length<2){ resolve([]); return; }
-
-        const header0=String(rows[0][0]||'').trim();
-        const isSabangnet=(header0==='No.');
-        const isRiobell  =(header0==='년');
-
-        if(!isSabangnet&&!isRiobell){
-          showToast(`⚠️ ${file.name}: 지원하지 않는 파일 형식`);
-          resolve([]); return;
+function parseXLSX(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, defval:null, raw:false});
+        const res = []; const isSabangnet = String(rows[0][0]||'').trim() === 'No.';
+        
+        for(let i=1; i<rows.length; i++) {
+          const r = rows[i]; if(!r[0] && !r[1]) continue;
+          let dateStr = "";
+          
+          // 🐛 날짜 포맷팅 버그 수정 (특정 일자 누락 원인 해결)
+          if (isSabangnet) {
+            // 사방넷은 기존처럼 자르되 기호를 무조건 하이픈으로 강제 변환
+            dateStr = String(r[4]||'').substring(0,10).replace(/[.\/]/g, '-');
+          } else {
+            // 리오벨은 엑셀 포맷 변형을 막기 위해 A열(년), B열(월), C열(일)을 직접 조합
+            const y = String(r[0]).trim();
+            const m = String(r[1]).trim().padStart(2, '0');
+            const d = String(r[2]).trim().padStart(2, '0');
+            dateStr = `${y}-${m}-${d}`;
+          }
+          
+          if (!dateStr || dateStr.length !== 10 || dateStr.includes('undefined')) continue;
+          
+          const statusStr = isSabangnet ? String(r[3]||'') : String(r[29]||'');
+          const status = (statusStr.includes('반품') || statusStr.includes('취소')) ? 'return' : 'complete';
+          
+          const brand = (isSabangnet ? r[2] : r[18]) || '미분류';
+          const price = parseFloat(String(isSabangnet ? r[23] : r[22]||'0').replace(/[,\s₩]/g, '')) || 0;
+          const qty = parseFloat(String(isSabangnet ? r[11] : r[23]||'1').replace(/[,\s₩]/g, '')) || 1;
+          
+          res.push({
+            date: dateStr, ym: dateStr.substring(0,7), brand: brand, group: getGroup(brand),
+            channel: (isSabangnet ? r[1] : r[5]) || '기타', product: String(isSabangnet ? r[9] : r[19]||'').trim(),
+            orderId: isSabangnet ? r[7] : r[7], status: status,
+            completeAmt: status === 'complete' ? price * qty : 0, retAmt: status === 'return' ? price * qty : 0, qty: qty
+          });
         }
-
-        const res=[];
-        for(let i=1;i<rows.length;i++){
-          const r=rows[i];
-          if(!r||(!r[0]&&!r[1]&&!r[2])) continue;
-          const record=isSabangnet?parseSabangnetRow(r):parseRiobellRow(r);
-          if(record) res.push(record);
-        }
-        console.log(`[${file.name}] ${isSabangnet?'사방넷':'리오벨'} → ${res.length}건`);
         resolve(res);
-      }catch(err){
-        console.error('parseXLSX error:',err);
-        showToast(`⚠️ ${file.name} 파싱 오류`);
-        resolve([]);
-      }
+      } catch(err) { resolve([]); }
     };
     reader.readAsArrayBuffer(file);
   });
