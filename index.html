@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Han-A OPS v5.7 (중복 방지 및 UI 패치 완료)</title>
+<title>Han-A OPS v5.8 (브랜드 통합 및 매핑 수정)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -387,7 +387,7 @@
       <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(event)">
       <button class="btn-outline" style="width:100%;justify-content:center;padding:13px;margin-bottom:10px" onclick="document.getElementById('restoreInput').click()">📂 백업 파일로 복원</button>
       
-      <button class="btn-outline" style="width:100%;justify-content:center;padding:13px;margin-bottom:10px;border-color:var(--warning);color:var(--warning)" onclick="cleanUpDuplicates()">🧹 과거 중복 데이터 싹 정리하기</button>
+      <button class="btn-outline" style="width:100%;justify-content:center;padding:13px;margin-bottom:10px;border-color:var(--warning);color:var(--warning)" onclick="cleanUpDuplicates()">🧹 과거 데이터 통합 및 중복 정리하기</button>
 
       <div style="border-top:1px solid var(--border);margin:20px 0"></div>
       <button class="btn-outline" style="width:100%;justify-content:center;border-color:var(--danger-light);color:var(--danger)" onclick="clearData()">🚨 서버 데이터 전체 삭제</button>
@@ -404,7 +404,7 @@
       </div>
       <div style="max-height:340px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px 12px">
         <div id="brandMapList" style="font-size:13px">
-          <div style="padding:40px;text-align:center;color:var(--text-light)">등록된 브랜드 없음</div>
+          <div style="padding:40px;text-align:center;color:var(--text-light)">등록된 매핑 없음</div>
         </div>
       </div>
       <div style="margin-top:14px;display:flex;gap:8px">
@@ -484,9 +484,10 @@
 
 <script>
 // ═══════════════════════════════════
-// 🔥 Firebase
+// 🔥 Firebase Configuration
 // ═══════════════════════════════════
 const firebaseConfig = {
+  // 여기에 발급받으신 파이어베이스 설정값을 붙여넣어주세요!
   apiKey:"AIzaSyBBk2BwwnAYJ9WzY8MJfcbHQZO3rZkjxY4",
   authDomain:"hana-db-64d44.firebaseapp.com",
   databaseURL:"https://hana-db-64d44-default-rtdb.firebaseio.com",
@@ -504,25 +505,35 @@ const database = firebase.database();
 let DB = [], chartInstance = null, dailyChartInstance = null;
 let curTab = 'overview', curGroup = 'all', monthlyGoals = {};
 let dailyView = 'chart';
-
-// ── 브랜드 매핑 / 그룹 (Firebase 연동) ──
 let brandMap  = {};
 let groupList = [];
-
-// 업로드 대기 중인 파싱 결과
 let _pendingUploadResults = null;
-
-// 기본 그룹 초기값
 const DEFAULT_GROUPS = ['신원', '라성', '한아물산'];
 
-// 하드코딩 폴백 매핑
+// ── ★ 브랜드명 정규화(통합) 함수 ──
+function normalizeBrandName(b) {
+  if (!b) return '미분류';
+  const s = String(b).trim();
+  const up = s.toUpperCase();
+  
+  if (up === 'ENNITTUDE' || s === '엔니튜드') return '엔니튜드';
+  if (s === '헤니트' || s === '헤니트2') return '헤니트';
+  if (up === 'BESTI BELLI' || s === '베스띠벨리') return '베스띠벨리';
+  if (up === 'SI' || s === '씨') return '씨';
+  if (up === 'LEDEPT' || up === 'LE DEPT' || s === '르뎁트') return '르뎁트';
+  if (up === 'MARIBON' || s === '마리본') return '마리본';
+  if (up === 'JASON WU' || s === '제이슨우') return '제이슨우';
+  if (up === 'MAX STUDIO' || s === '막스스튜디오') return '막스스튜디오';
+  
+  return s;
+}
+
+// ── ★ 하드코딩 그룹 매핑 (수정됨) ──
 const HARDCODED_MAP = {
   '씨':'신원','베스띠벨리':'신원','지이크':'신원','파렌하이트':'신원',
-  '리오벨':'라성','헤니트':'라성','헤니트2':'라성','드베터':'라성',
+  '리오벨':'라성','헤니트':'라성','드베터':'라성',
   '엔니튜드':'한아물산','마리본':'한아물산','제이슨우':'한아물산',
-  '막스스튜디오':'한아물산','르뎁트':'한아물산',
-  'enNITTUDE':'한아물산','LEDEPT':'한아물산','MARIBON':'한아물산',
-  'JASON WU':'한아물산','MAX STUDIO':'한아물산','Le Dept':'한아물산'
+  '막스스튜디오':'한아물산','르뎁트':'한아물산'
 };
 
 // ═══════════════════════════════════
@@ -536,22 +547,14 @@ function showToast(msg,dur=3000){ const t=document.getElementById('toast'); t.te
 function pct(a,b){ return b>0?Math.round(a/b*100):0; }
 
 // ═══════════════════════════════════
-// ★ 브랜드 → 그룹
+// 브랜드 → 그룹
 // ═══════════════════════════════════
 function getGroup(brandName){
-  const s  = String(brandName||'').trim();
-  const sl = s.toLowerCase();
+  // 이미 정규화된 브랜드명이 들어온다고 가정
+  const s = String(brandName||'').trim();
   if(brandMap[s]) return brandMap[s];
-  const slKey = Object.keys(brandMap).find(k=>k.toLowerCase()===sl);
-  if(slKey) return brandMap[slKey];
   if(HARDCODED_MAP[s]) return HARDCODED_MAP[s];
-  const hcKey = Object.keys(HARDCODED_MAP).find(k=>k.toLowerCase()===sl);
-  if(hcKey) return HARDCODED_MAP[hcKey];
   return '기타';
-}
-
-function recomputeGroups(){
-  DB = DB.map(r=>({ ...r, group: getGroup(r.brand) }));
 }
 
 // ═══════════════════════════════════
@@ -559,12 +562,16 @@ function recomputeGroups(){
 // ═══════════════════════════════════
 database.ref('hana_ops_live').on('value', snapshot=>{
   const data = snapshot.val() || {};
-  DB           = data.records   || [];
+  let rawDB    = data.records   || [];
   monthlyGoals = data.goals     || {};
   brandMap     = data.brand_map || {};
   groupList    = data.groups    || [...DEFAULT_GROUPS];
 
-  DB = DB.map(r=>({ ...r, group: getGroup(r.brand) }));
+  // 화면 표시용: 불러올 때 브랜드명 정규화 및 그룹 재계산 반영
+  DB = rawDB.map(r => {
+    const nb = normalizeBrandName(r.brand);
+    return { ...r, brand: nb, group: getGroup(nb) };
+  });
 
   if(DB.length>0 && !document.getElementById('dateFrom').value){
     const dates = DB.map(r=>r.date).sort();
@@ -614,10 +621,7 @@ function checkUnmatchedBanner(){
 // ═══════════════════════════════════
 // 날짜 / 그룹 UI
 // ═══════════════════════════════════
-function syncDate(type,val){
-  document.getElementById(type==='from'?'dateFrom':'dateTo').value=val;
-  renderAll();
-}
+function syncDate(type,val){ document.getElementById(type==='from'?'dateFrom':'dateTo').value=val; renderAll(); }
 function setQuickDate(type){
   const today=new Date(); let from,to;
   if(type==='thisMonth'){ from=new Date(today.getFullYear(),today.getMonth(),1); to=new Date(today.getFullYear(),today.getMonth()+1,0); }
@@ -638,9 +642,7 @@ function setGroupMobile(grp,el){
   curGroup=grp;
   document.querySelectorAll('#mobileChipBar .chip').forEach(c=>c.classList.remove('active'));
   if(el) el.classList.add('active');
-  document.querySelectorAll('.g-tab').forEach(t=>{
-    t.classList.toggle('active',(grp==='all'&&t.textContent==='전체보기')||t.textContent===grp);
-  });
+  document.querySelectorAll('.g-tab').forEach(t=>{ t.classList.toggle('active',(grp==='all'&&t.textContent==='전체보기')||t.textContent===grp); });
   renderAll();
 }
 function switchTab(tabId,el){
@@ -652,13 +654,9 @@ function switchTab(tabId,el){
 }
 
 // ═══════════════════════════════════
-// Settings Modal
+// Settings Modal (설정 / 매핑)
 // ═══════════════════════════════════
-function openSettingsModal(){
-  renderBrandMapPanel();
-  renderGroupPanel();
-  document.getElementById('settingsModal').classList.add('show');
-}
+function openSettingsModal(){ renderBrandMapPanel(); renderGroupPanel(); document.getElementById('settingsModal').classList.add('show'); }
 function switchModalTab(tab,el){
   document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.modal-panel').forEach(p=>p.classList.remove('active'));
@@ -669,52 +667,31 @@ function switchModalTab(tab,el){
 }
 
 function renderBrandMapPanel(){
-  const allBrands = new Set([
-    ...Object.keys(brandMap),
-    ...Object.keys(HARDCODED_MAP),
-    ...DB.map(r=>r.brand).filter(Boolean)
-  ]);
+  const allBrands = new Set([ ...Object.keys(brandMap), ...Object.keys(HARDCODED_MAP), ...DB.map(r=>r.brand).filter(Boolean) ]);
   const unmatched = [...allBrands].filter(b=>getGroup(b)==='기타');
   const matched   = [...allBrands].filter(b=>getGroup(b)!=='기타').sort();
 
   const unSection = document.getElementById('unmappedSection');
-  const unList    = document.getElementById('unmappedList');
-  if(unmatched.length>0){
-    unSection.style.display='block';
-    unList.innerHTML = unmatched.map(b=>brandMapRowHtml(b, '')).join('');
-  } else {
-    unSection.style.display='none';
-  }
+  if(unmatched.length>0){ unSection.style.display='block'; document.getElementById('unmappedList').innerHTML = unmatched.map(b=>brandMapRowHtml(b, '')).join(''); } 
+  else { unSection.style.display='none'; }
 
-  document.getElementById('brandMapList').innerHTML =
-    matched.length===0
+  document.getElementById('brandMapList').innerHTML = matched.length===0
       ? '<div style="padding:30px;text-align:center;color:var(--text-light)">등록된 매핑 없음</div>'
       : matched.map(b=>brandMapRowHtml(b, getGroup(b))).join('');
-
   updateGroupSelects();
 }
 
 function brandMapRowHtml(brand, group){
-  const opts = ['', ...groupList].map(g=>
-    `<option value="${esc(g)}" ${g===group?'selected':''}>${g||'— 선택 —'}</option>`
-  ).join('');
-  return `<div class="brand-map-row">
-    <span class="brand-name-tag">${esc(brand)}</span>
-    <select class="group-select" data-brand="${esc(brand)}">${opts}</select>
-    <button class="btn-danger-sm" onclick="removeBrandEntry('${esc(brand)}')">삭제</button>
-  </div>`;
+  const opts = ['', ...groupList].map(g=>`<option value="${esc(g)}" ${g===group?'selected':''}>${g||'— 선택 —'}</option>`).join('');
+  return `<div class="brand-map-row"><span class="brand-name-tag">${esc(brand)}</span><select class="group-select" data-brand="${esc(brand)}">${opts}</select><button class="btn-danger-sm" onclick="removeBrandEntry('${esc(brand)}')">삭제</button></div>`;
 }
 
-function updateGroupSelects(){
-  const opts = ['', ...groupList].map(g=>`<option value="${esc(g)}">${g||'— 선택 —'}</option>`).join('');
-  document.getElementById('newBrandGroup').innerHTML = opts;
-}
+function updateGroupSelects(){ document.getElementById('newBrandGroup').innerHTML = ['', ...groupList].map(g=>`<option value="${esc(g)}">${g||'— 선택 —'}</option>`).join(''); }
 
 async function saveBrandMap(){
   const newMap = {};
   document.querySelectorAll('#panel-brandmap select[data-brand]').forEach(sel=>{
-    const brand = sel.dataset.brand;
-    const grp   = sel.value;
+    const brand = sel.dataset.brand; const grp = sel.value;
     if(brand && grp) newMap[brand] = grp;
   });
   const merged = { ...brandMap, ...newMap };
@@ -723,57 +700,40 @@ async function saveBrandMap(){
 }
 
 async function addBrandMapEntry(){
-  const name = document.getElementById('newBrandName').value.trim();
-  const grp  = document.getElementById('newBrandGroup').value;
-  if(!name){ showToast('브랜드명을 입력하세요'); return; }
-  if(!grp){  showToast('그룹을 선택하세요');    return; }
+  const name = document.getElementById('newBrandName').value.trim(); const grp = document.getElementById('newBrandGroup').value;
+  if(!name){ showToast('브랜드명을 입력하세요'); return; } if(!grp){ showToast('그룹을 선택하세요'); return; }
   const updated = { ...brandMap, [name]: grp };
   await database.ref('hana_ops_live/brand_map').set(updated);
-  document.getElementById('newBrandName').value='';
-  showToast(`'${name}' → ${grp} 추가 완료`);
+  document.getElementById('newBrandName').value=''; showToast(`'${name}' → ${grp} 추가 완료`);
 }
 
 async function removeBrandEntry(brand){
-  const updated = { ...brandMap };
-  delete updated[brand];
-  await database.ref('hana_ops_live/brand_map').set(updated);
-  showToast(`'${brand}' 매핑 삭제`);
+  const updated = { ...brandMap }; delete updated[brand];
+  await database.ref('hana_ops_live/brand_map').set(updated); showToast(`'${brand}' 매핑 삭제`);
 }
 
 function renderGroupPanel(){
   document.getElementById('groupList').innerHTML = groupList.map((g,i)=>
-    `<div class="brand-map-row">
-      <span style="font-weight:600">${esc(g)}</span>
-      <span></span>
-      <button class="btn-danger-sm" onclick="removeGroup('${esc(g)}')">삭제</button>
-    </div>`
+    `<div class="brand-map-row"><span style="font-weight:600">${esc(g)}</span><span></span><button class="btn-danger-sm" onclick="removeGroup('${esc(g)}')">삭제</button></div>`
   ).join('') || '<div style="padding:20px;text-align:center;color:var(--text-light)">그룹 없음</div>';
 }
 
 async function addGroup(){
   const name = document.getElementById('newGroupName').value.trim();
-  if(!name){ showToast('그룹명을 입력하세요'); return; }
-  if(groupList.includes(name)){ showToast('이미 존재하는 그룹입니다'); return; }
-  const updated = [...groupList, name];
-  await database.ref('hana_ops_live/groups').set(updated);
-  document.getElementById('newGroupName').value='';
-  showToast(`그룹 '${name}' 추가 완료`);
+  if(!name){ showToast('그룹명을 입력하세요'); return; } if(groupList.includes(name)){ showToast('이미 존재하는 그룹입니다'); return; }
+  const updated = [...groupList, name]; await database.ref('hana_ops_live/groups').set(updated);
+  document.getElementById('newGroupName').value=''; showToast(`그룹 '${name}' 추가 완료`);
 }
 
 async function removeGroup(name){
   if(!confirm(`'${name}' 그룹을 삭제하면 해당 그룹 브랜드들이 미분류 처리됩니다. 계속하시겠습니까?`)) return;
-  const updated = groupList.filter(g=>g!==name);
-  await database.ref('hana_ops_live/groups').set(updated);
-  showToast(`그룹 '${name}' 삭제`);
+  const updated = groupList.filter(g=>g!==name); await database.ref('hana_ops_live/groups').set(updated); showToast(`그룹 '${name}' 삭제`);
 }
 
-function openBrandMapModal(){
-  switchModalTab('brandmap', document.querySelectorAll('.modal-tab')[1]);
-  document.getElementById('settingsModal').classList.add('show');
-}
+function openBrandMapModal(){ switchModalTab('brandmap', document.querySelectorAll('.modal-tab')[1]); document.getElementById('settingsModal').classList.add('show'); }
 
 // ═══════════════════════════════════
-// 파일 파싱 및 데이터 업로드 (★ 버그 픽스 부분)
+// 파일 파싱 및 데이터 업로드 
 // ═══════════════════════════════════
 function handleFiles(files){
   const arr=[...files].filter(f=>/\.(xlsx|xls)$/i.test(f.name));
@@ -782,56 +742,38 @@ function handleFiles(files){
 
   Promise.all(arr.map(parseXLSX)).then(results=>{
     document.getElementById('pbText').textContent='';
-
     const allBrands = new Set(results.flatMap(r=>r.map(rec=>rec.brand)));
     const newUnmatched = [...allBrands].filter(b=>b && b!=='미분류' && getGroup(b)==='기타');
 
     if(newUnmatched.length>0){
-      _pendingUploadResults = results;
-      showMappingModal(newUnmatched);
-    } else {
-      doUpload(results);
-    }
-  }).catch(err=>{
-    console.error('Upload error:', err);
-    document.getElementById('pbText').textContent='';
-    showToast('업로드 오류');
-  });
+      _pendingUploadResults = results; showMappingModal(newUnmatched);
+    } else { doUpload(results); }
+  }).catch(err=>{ document.getElementById('pbText').textContent=''; showToast('업로드 오류'); });
 }
 
 function showMappingModal(unmatched){
   const opts = groupList.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('');
   document.getElementById('mappingModalList').innerHTML = unmatched.map(b=>`
-    <div class="mapping-brand-row">
-      <span class="mapping-brand-name">${esc(b)}</span>
+    <div class="mapping-brand-row"><span class="mapping-brand-name">${esc(b)}</span>
       <select class="group-select" id="mmap_${esc(b)}" style="min-width:120px">
-        <option value="">— 기타 유지 —</option>
-        ${opts}
-      </select>
-    </div>`).join('');
-  document.getElementById('uploadModal').classList.remove('show');
-  document.getElementById('mappingModal').classList.add('show');
+        <option value="">— 기타 유지 —</option>${opts}
+      </select></div>`).join('');
+  document.getElementById('uploadModal').classList.remove('show'); document.getElementById('mappingModal').classList.add('show');
 }
 
 async function saveMappingAndUpload(){
   const updated = { ...brandMap };
   document.querySelectorAll('#mappingModalList select').forEach(sel=>{
-    const brand = sel.id.replace('mmap_','');
-    if(sel.value) updated[brand] = sel.value;
+    const brand = sel.id.replace('mmap_',''); if(sel.value) updated[brand] = sel.value;
   });
   await database.ref('hana_ops_live/brand_map').set(updated);
   document.getElementById('mappingModal').classList.remove('show');
-
-  const results = _pendingUploadResults;
-  _pendingUploadResults = null;
-  doUpload(results);
+  const results = _pendingUploadResults; _pendingUploadResults = null; doUpload(results);
 }
 
 function skipMappingAndUpload(){
   document.getElementById('mappingModal').classList.remove('show');
-  const results = _pendingUploadResults;
-  _pendingUploadResults = null;
-  doUpload(results);
+  const results = _pendingUploadResults; _pendingUploadResults = null; doUpload(results);
 }
 
 async function doUpload(results){
@@ -843,9 +785,12 @@ async function doUpload(results){
     newDB=newDB.concat(parsed);
   });
   newDB.sort((a,b)=>a.date.localeCompare(b.date));
-
-  // ★ 버그 픽스: _dedupeKey를 삭제하지 않고 유지합니다.
-  const cleanDB = newDB.map(r => ({ ...r, group: getGroup(r.brand) }));
+  
+  // 파이어베이스 저장 전 정규화 + 최신 그룹 매핑 확정 저장
+  const cleanDB = newDB.map(r => {
+    const nb = normalizeBrandName(r.brand);
+    return { ...r, brand: nb, group: getGroup(nb) };
+  });
 
   await database.ref('hana_ops_live/records').set(cleanDB);
   document.getElementById('uploadModal').classList.remove('show');
@@ -856,13 +801,9 @@ async function doUpload(results){
 // ═══════════════════════════════════
 // 파서
 // ═══════════════════════════════════
-function toNum(v){
-  if(v===null||v===undefined||v==='') return 0;
-  return parseFloat(String(v).replace(/[,\s₩원]/g,''))||0;
-}
+function toNum(v){ if(v===null||v===undefined||v==='') return 0; return parseFloat(String(v).replace(/[,\s₩원]/g,''))||0; }
 function normalizeDate(raw){
-  if(!raw) return '';
-  const s=String(raw).trim();
+  if(!raw) return ''; const s=String(raw).trim();
   if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0,10);
   if(/^\d{4}\/\d{2}\/\d{2}/.test(s)) return s.substring(0,10).replace(/\//g,'-');
   const num=parseInt(s);
@@ -886,32 +827,33 @@ function parseXLSX(file) {
           const r = rows[i]; if(!r[0] && !r[1]) continue;
           let dateStr = "";
           
-          // 🐛 날짜 포맷팅 버그 수정 (특정 일자 누락 원인 해결)
           if (isSabangnet) {
-            // 사방넷은 기존처럼 자르되 기호를 무조건 하이픈으로 강제 변환
             dateStr = String(r[4]||'').substring(0,10).replace(/[.\/]/g, '-');
           } else {
-            // 리오벨은 엑셀 포맷 변형을 막기 위해 A열(년), B열(월), C열(일)을 직접 조합
-            const y = String(r[0]).trim();
-            const m = String(r[1]).trim().padStart(2, '0');
-            const d = String(r[2]).trim().padStart(2, '0');
+            const y = String(r[0]).trim(); const m = String(r[1]).trim().padStart(2, '0'); const d = String(r[2]).trim().padStart(2, '0');
             dateStr = `${y}-${m}-${d}`;
           }
-          
           if (!dateStr || dateStr.length !== 10 || dateStr.includes('undefined')) continue;
           
           const statusStr = isSabangnet ? String(r[3]||'') : String(r[29]||'');
           const status = (statusStr.includes('반품') || statusStr.includes('취소')) ? 'return' : 'complete';
           
-          const brand = (isSabangnet ? r[2] : r[18]) || '미분류';
+          const rawBrand = (isSabangnet ? r[2] : r[18]) || '미분류';
+          const brand = normalizeBrandName(rawBrand); // ★ 정규화 적용
+          
           const price = parseFloat(String(isSabangnet ? r[23] : r[22]||'0').replace(/[,\s₩]/g, '')) || 0;
           const qty = parseFloat(String(isSabangnet ? r[11] : r[23]||'1').replace(/[,\s₩]/g, '')) || 1;
           
+          const orderId = String(isSabangnet ? r[7] : r[7]||'').trim();
+          const channel = String(isSabangnet ? r[1] : r[5]||'기타').trim();
+
           res.push({
             date: dateStr, ym: dateStr.substring(0,7), brand: brand, group: getGroup(brand),
-            channel: (isSabangnet ? r[1] : r[5]) || '기타', product: String(isSabangnet ? r[9] : r[19]||'').trim(),
-            orderId: isSabangnet ? r[7] : r[7], status: status,
-            completeAmt: status === 'complete' ? price * qty : 0, retAmt: status === 'return' ? price * qty : 0, qty: qty
+            channel: channel, product: String(isSabangnet ? r[9] : r[19]||'').trim(),
+            orderId: orderId, status: status,
+            completeAmt: status === 'complete' ? price * qty : 0, retAmt: status === 'return' ? price * qty : 0, qty: qty,
+            fileType: isSabangnet ? 'sabangnet' : 'riobell',
+            _dedupeKey: isSabangnet ? `S_${orderId}` : `R_${dateStr}_${channel}_${orderId}`
           });
         }
         resolve(res);
@@ -921,57 +863,8 @@ function parseXLSX(file) {
   });
 }
 
-function parseSabangnetRow(r){
-  const dateStr=normalizeDate(r[4]);
-  if(!dateStr||!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
-  const statusStr=String(r[3]||'').trim();
-  const isReturn =statusStr.includes('반품')||statusStr.includes('취소')||statusStr.includes('클레임');
-  const status   =isReturn?'return':'complete';
-  const brand    =String(r[2]||'미분류').trim();
-  const channel  =String(r[1]||'기타').trim();
-  const product  =String(r[9]||'').trim();
-  const orderId  =String(r[7]||'').trim();
-  const qty      =toNum(r[11])||1;
-  const price    =toNum(r[23]);
-  return {
-    date:dateStr, ym:dateStr.substring(0,7),
-    brand, channel, product, orderId, status,
-    group:getGroup(brand),
-    completeAmt:status==='complete'?price*qty:0,
-    retAmt:     status==='return'  ?price*qty:0,
-    qty, fileType:'sabangnet',
-    _dedupeKey:`S_${orderId}`
-  };
-}
-
-function parseRiobellRow(r){
-  let dateStr=normalizeDate(r[8]);
-  if(!dateStr||!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) dateStr=normalizeDate(r[4]);
-  if(!dateStr||!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
-  const statusStr=String(r[29]||'').trim();
-  const isReturn =statusStr.includes('반품')||statusStr.includes('취소')||statusStr.includes('클레임');
-  const status   =isReturn?'return':'complete';
-  const brand    =String(r[18]||'미분류').trim();
-  const channel  =String(r[5]||'기타').trim();
-  const product  =String(r[19]||'').trim();
-  const orderId  =String(r[7]||'').trim();
-  const qty      =toNum(r[23])||1;
-  const price    =toNum(r[22]);
-  const retRaw   =toNum(r[30]);
-  const cncRaw   =toNum(r[33]);
-  return {
-    date:dateStr, ym:dateStr.substring(0,7),
-    brand, channel, product, orderId, status,
-    group:getGroup(brand),
-    completeAmt:status==='complete'?price*qty:0,
-    retAmt:     isReturn?(retRaw||cncRaw||price*qty):0,
-    qty, fileType:'riobell',
-    _dedupeKey:`R_${dateStr}_${channel}_${orderId}`
-  };
-}
-
 // ═══════════════════════════════════
-// 데이터 필터
+// 데이터 렌더 및 뷰어
 // ═══════════════════════════════════
 function getData(){
   const from=document.getElementById('dateFrom').value;
@@ -984,9 +877,6 @@ function getData(){
   });
 }
 
-// ═══════════════════════════════════
-// 목표
-// ═══════════════════════════════════
 function getTargetGoal(from,to,grp){
   if(!from||!to) return 0;
   let cur=new Date(new Date(from).getFullYear(),new Date(from).getMonth(),1);
@@ -1000,6 +890,7 @@ function getTargetGoal(from,to,grp){
   }
   return total;
 }
+
 function buildGoalTable(){
   const y=document.getElementById('goalYearSelect').value;
   groupList.forEach((g,i)=>{ const el=document.getElementById(`goalHeader_${i}`); if(el) el.textContent=g; });
@@ -1013,40 +904,31 @@ function buildGoalTable(){
   }
   document.getElementById('goalTableBody').innerHTML=html;
 }
+
 function openGoalModal(){ buildGoalTable(); document.getElementById('goalModal').classList.add('show'); }
 async function saveGoals(){
   const y=document.getElementById('goalYearSelect').value;
   for(let m=1;m<=12;m++){
-    const ym=`${y}-${String(m).padStart(2,'0')}`;
-    const vals={};
+    const ym=`${y}-${String(m).padStart(2,'0')}`; const vals={};
     groupList.forEach((g,i)=>{ vals[g]=Number(document.getElementById(`g_${i}_${m}`).value)||0; });
-    const hasVal=Object.values(vals).some(v=>v>0);
-    if(hasVal) monthlyGoals[ym]=vals; else delete monthlyGoals[ym];
+    if(Object.values(vals).some(v=>v>0)) monthlyGoals[ym]=vals; else delete monthlyGoals[ym];
   }
   await database.ref('hana_ops_live/goals').set(monthlyGoals);
-  document.getElementById('goalModal').classList.remove('show');
-  showToast('목표 저장 완료');
+  document.getElementById('goalModal').classList.remove('show'); showToast('목표 저장 완료');
 }
 
-// ═══════════════════════════════════
-// renderAll
-// ═══════════════════════════════════
 function renderAll(){
   const data=getData();
-  const cRows=data.filter(r=>r.status==='complete');
-  const rRows=data.filter(r=>r.status==='return');
-  const cAmt=cRows.reduce((s,r)=>s+r.completeAmt,0);
-  const rAmt=rRows.reduce((s,r)=>s+r.retAmt,0);
-  const cCnt=cRows.reduce((s,r)=>s+r.qty,0);
-  const rCnt=rRows.reduce((s,r)=>s+r.qty,0);
+  const cRows=data.filter(r=>r.status==='complete'); const rRows=data.filter(r=>r.status==='return');
+  const cAmt=cRows.reduce((s,r)=>s+r.completeAmt,0); const rAmt=rRows.reduce((s,r)=>s+r.retAmt,0);
+  const cCnt=cRows.reduce((s,r)=>s+r.qty,0); const rCnt=rRows.reduce((s,r)=>s+r.qty,0);
   const retRate=cAmt>0?Math.round(rAmt/cAmt*100):0;
 
   document.getElementById('kpi-complete').textContent=`₩${won(cAmt)}`;
   document.getElementById('kpi-complete-sub').textContent=`${cCnt.toLocaleString()}건`;
   document.getElementById('kpi-net').textContent=`₩${won(cAmt-rAmt)}`;
   document.getElementById('kpi-return').textContent=`₩${won(rAmt)}`;
-  document.getElementById('kpi-return-sub').innerHTML=
-    `${rCnt.toLocaleString()}건 <span class="badge ${retRate>=20?'badge-danger':'badge-success'}">반품 ${retRate}%</span>`;
+  document.getElementById('kpi-return-sub').innerHTML=`${rCnt.toLocaleString()}건 <span class="badge ${retRate>=20?'badge-danger':'badge-success'}">반품 ${retRate}%</span>`;
   document.getElementById('kpi-total-cnt').textContent=(cCnt+rCnt).toLocaleString();
 
   const tgt=getTargetGoal(document.getElementById('dateFrom').value,document.getElementById('dateTo').value,curGroup);
@@ -1067,7 +949,6 @@ function renderAll(){
   if(curTab==='heatmap')     { renderHeatmap(data); }
 }
 
-// ── Overview 차트 ──
 function renderOverviewChart(data){
   const dayMap={};
   data.forEach(r=>{
@@ -1080,14 +961,11 @@ function renderOverviewChart(data){
   if(chartInstance) chartInstance.destroy();
   chartInstance=new Chart(document.getElementById('mainChart').getContext('2d'),{
     type:'bar',
-    data:{labels:dates.map(d=>[d.slice(5),toManWon(dayMap[d].cAmt)]),
-          datasets:[{label:'완료금액',data:dates.map(d=>dayMap[d].cAmt),backgroundColor:'#DBEAFE',hoverBackgroundColor:'#2563EB',borderRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-             scales:{x:{ticks:{font:{size:11,family:"'DM Mono',monospace"}}},y:{ticks:{callback:v=>wonK(v)}}}}
+    data:{labels:dates.map(d=>[d.slice(5),toManWon(dayMap[d].cAmt)]), datasets:[{label:'완료금액',data:dates.map(d=>dayMap[d].cAmt),backgroundColor:'#DBEAFE',hoverBackgroundColor:'#2563EB',borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:11,family:"'DM Mono',monospace"}}},y:{ticks:{callback:v=>wonK(v)}}}}
   });
 }
 
-// ── 브랜드 카드 ──
 function renderBrands(data){
   const bMap={};
   data.forEach(r=>{
@@ -1099,10 +977,7 @@ function renderBrands(data){
     Object.entries(bMap).sort((a,b)=>b[1].cAmt-a[1].cAmt).map(([name,v])=>{
       const isUnmatched=v.group==='기타';
       return `<div class="brand-card ${isUnmatched?'unmatched':''}" onclick="renderBrandDetail('${esc(name)}')">
-        <div class="bc-header">
-          <b>${esc(name)}</b>
-          <span class="bc-tag ${isUnmatched?'badge-danger':''}">${isUnmatched?'⚠️ 미분류':esc(v.group)}</span>
-        </div>
+        <div class="bc-header"><b>${esc(name)}</b><span class="bc-tag ${isUnmatched?'badge-danger':''}">${isUnmatched?'⚠️ 미분류':esc(v.group)}</span></div>
         <div class="bc-amt">₩${won(v.cAmt)}</div>
         <div style="font-size:11px;color:var(--text-sub)">반품 ₩${won(v.rAmt)}</div>
       </div>`;
@@ -1110,9 +985,7 @@ function renderBrands(data){
 }
 
 function renderBrandDetail(name){
-  document.querySelectorAll('.brand-card').forEach(c=>{
-    c.classList.toggle('active',c.querySelector('b')?.textContent===name);
-  });
+  document.querySelectorAll('.brand-card').forEach(c=>c.classList.toggle('active',c.querySelector('b')?.textContent===name));
   const rows=getData().filter(r=>r.brand===name);
   const cAmt=rows.filter(r=>r.status==='complete').reduce((s,r)=>s+r.completeAmt,0);
   const rAmt=rows.filter(r=>r.status==='return').reduce((s,r)=>s+r.retAmt,0);
@@ -1126,161 +999,91 @@ function renderBrandDetail(name){
   document.getElementById('detailChannelList').innerHTML=
     Object.entries(chMap).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([ch,amt],i)=>
       `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
-        <span>${i+1}. ${esc(ch)}</span>
-        <span style="font-family:'DM Mono',monospace;font-weight:700">₩${won(amt)}</span>
+        <span>${i+1}. ${esc(ch)}</span><span style="font-family:'DM Mono',monospace;font-weight:700">₩${won(amt)}</span>
       </div>`).join('');
 }
 
-// ── 일자별 매출 ──
-function setDailyView(view,el){
-  dailyView=view;
-  document.querySelectorAll('#dvtToggle .dvt-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
-  renderDailySales();
-}
+function setDailyView(view,el){ dailyView=view; document.querySelectorAll('#dvtToggle .dvt-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===view)); renderDailySales(); }
 function renderDailySales(data){
-  if(!data) data=getData();
-  const sortDesc=document.getElementById('dailySortSel').value==='date_desc';
+  if(!data) data=getData(); const sortDesc=document.getElementById('dailySortSel').value==='date_desc';
   const dayMap={};
   data.forEach(r=>{
     if(!dayMap[r.date]) dayMap[r.date]={cAmt:0,rAmt:0,cCnt:0,rCnt:0,brands:{}};
     const d=dayMap[r.date];
-    if(r.status==='complete'){d.cAmt+=r.completeAmt;d.cCnt+=r.qty;}
-    else{d.rAmt+=r.retAmt;d.rCnt+=r.qty;}
+    if(r.status==='complete'){d.cAmt+=r.completeAmt;d.cCnt+=r.qty;} else{d.rAmt+=r.retAmt;d.rCnt+=r.qty;}
     if(!d.brands[r.brand]) d.brands[r.brand]=0;
     if(r.status==='complete') d.brands[r.brand]+=r.completeAmt;
   });
-  let dates=Object.keys(dayMap).sort();
-  if(sortDesc) dates=[...dates].reverse();
+  let dates=Object.keys(dayMap).sort(); if(sortDesc) dates=[...dates].reverse();
 
-  const chartWrap=document.getElementById('dailySalesChartWrap');
-  chartWrap.style.display=dailyView==='chart'?'block':'none';
+  const chartWrap=document.getElementById('dailySalesChartWrap'); chartWrap.style.display=dailyView==='chart'?'block':'none';
   if(dailyView==='chart'){
-    let cd=[...dates].reverse();
-    if(window.innerWidth<=768) cd=cd.slice(-7);
+    let cd=[...dates].reverse(); if(window.innerWidth<=768) cd=cd.slice(-7);
     if(dailyChartInstance) dailyChartInstance.destroy();
     dailyChartInstance=new Chart(document.getElementById('dailySalesChart').getContext('2d'),{
-      type:'bar',
-      data:{labels:cd.map(d=>[d.slice(5),toManWon(dayMap[d].cAmt)]),
-            datasets:[
-              {label:'완료금액',data:cd.map(d=>dayMap[d].cAmt),backgroundColor:'#DBEAFE',hoverBackgroundColor:'#2563EB',borderRadius:3,yAxisID:'y'},
-              {label:'반품금액',data:cd.map(d=>-dayMap[d].rAmt),backgroundColor:'#FEE2E2',hoverBackgroundColor:'#DC2626',borderRadius:3,yAxisID:'y'}
-            ]},
-      options:{responsive:true,maintainAspectRatio:false,
-               plugins:{legend:{position:'bottom',labels:{font:{family:'Noto Sans KR',size:12}}}},
-               scales:{x:{ticks:{font:{size:11,family:"'DM Mono',monospace"}}},y:{ticks:{callback:v=>wonK(Math.abs(v))}}}}
+      type:'bar', data:{labels:cd.map(d=>[d.slice(5),toManWon(dayMap[d].cAmt)]), datasets:[
+        {label:'완료금액',data:cd.map(d=>dayMap[d].cAmt),backgroundColor:'#DBEAFE',hoverBackgroundColor:'#2563EB',borderRadius:3,yAxisID:'y'},
+        {label:'반품금액',data:cd.map(d=>-dayMap[d].rAmt),backgroundColor:'#FEE2E2',hoverBackgroundColor:'#DC2626',borderRadius:3,yAxisID:'y'}
+      ]}, options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{ticks:{font:{size:11,family:"'DM Mono',monospace"}}},y:{ticks:{callback:v=>wonK(Math.abs(v))}}}}
     });
   }
 
-  const tWrap=document.getElementById('dailySalesTableWrap');
-  tWrap.style.display=dailyView==='table'?'block':'none';
+  const tWrap=document.getElementById('dailySalesTableWrap'); tWrap.style.display=dailyView==='table'?'block':'none';
   if(dailyView==='table'){
-    let totC=0,totR=0,totCC=0,totRC=0;
-    dates.forEach(d=>{totC+=dayMap[d].cAmt;totR+=dayMap[d].rAmt;totCC+=dayMap[d].cCnt;totRC+=dayMap[d].rCnt;});
+    let totC=0,totR=0,totCC=0,totRC=0; dates.forEach(d=>{totC+=dayMap[d].cAmt;totR+=dayMap[d].rAmt;totCC+=dayMap[d].cCnt;totRC+=dayMap[d].rCnt;});
     const rr=totC>0?Math.round(totR/totC*100):0;
-    document.getElementById('dailySalesTable').innerHTML=`
-      <thead><tr><th>날짜</th><th>완료금액</th><th>완료건수</th><th>반품금액</th><th>반품건수</th><th>반품률</th><th>순매출</th><th>주요 브랜드</th></tr></thead>
+    document.getElementById('dailySalesTable').innerHTML=`<thead><tr><th>날짜</th><th>완료금액</th><th>완료건수</th><th>반품금액</th><th>반품건수</th><th>반품률</th><th>순매출</th><th>주요 브랜드</th></tr></thead>
       <tbody>${dates.map(d=>{
-        const v=dayMap[d]; const drr=v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0;
-        const top=Object.entries(v.brands).sort((a,b)=>b[1]-a[1])[0];
-        return `<tr>
-          <td style="text-align:left;font-family:'DM Mono',monospace;font-weight:600">${d}</td>
-          <td class="text-primary" style="font-family:'DM Mono',monospace">₩${won(v.cAmt)}</td>
-          <td>${v.cCnt.toLocaleString()}</td>
-          <td class="text-danger" style="font-family:'DM Mono',monospace">${v.rAmt>0?'₩'+won(v.rAmt):'-'}</td>
-          <td>${v.rCnt>0?v.rCnt:'-'}</td>
-          <td><span class="badge ${drr>=20?'badge-danger':'badge-success'}">${drr}%</span></td>
-          <td style="font-weight:700;font-family:'DM Mono',monospace">₩${won(v.cAmt-v.rAmt)}</td>
-          <td style="text-align:left;color:var(--text-sub)">${top?esc(top[0]):'-'}</td>
-        </tr>`;
-      }).join('')}</tbody>
-      <tfoot><tr>
-        <td style="text-align:left">합계</td>
-        <td class="text-primary">₩${won(totC)}</td><td>${totCC.toLocaleString()}</td>
-        <td class="text-danger">${totR>0?'₩'+won(totR):'-'}</td><td>${totRC>0?totRC:'-'}</td>
-        <td><span class="badge ${rr>=20?'badge-danger':'badge-success'}">${rr}%</span></td>
-        <td style="font-weight:700">₩${won(totC-totR)}</td><td></td>
-      </tr></tfoot>`;
+        const v=dayMap[d]; const drr=v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0; const top=Object.entries(v.brands).sort((a,b)=>b[1]-a[1])[0];
+        return `<tr><td style="text-align:left;font-family:'DM Mono',monospace;font-weight:600">${d}</td><td class="text-primary" style="font-family:'DM Mono',monospace">₩${won(v.cAmt)}</td><td>${v.cCnt.toLocaleString()}</td><td class="text-danger" style="font-family:'DM Mono',monospace">${v.rAmt>0?'₩'+won(v.rAmt):'-'}</td><td>${v.rCnt>0?v.rCnt:'-'}</td><td><span class="badge ${drr>=20?'badge-danger':'badge-success'}">${drr}%</span></td><td style="font-weight:700;font-family:'DM Mono',monospace">₩${won(v.cAmt-v.rAmt)}</td><td style="text-align:left;color:var(--text-sub)">${top?esc(top[0]):'-'}</td></tr>`;
+      }).join('')}</tbody><tfoot><tr><td style="text-align:left">합계</td><td class="text-primary">₩${won(totC)}</td><td>${totCC.toLocaleString()}</td><td class="text-danger">${totR>0?'₩'+won(totR):'-'}</td><td>${totRC>0?totRC:'-'}</td><td><span class="badge ${rr>=20?'badge-danger':'badge-success'}">${rr}%</span></td><td style="font-weight:700">₩${won(totC-totR)}</td><td></td></tr></tfoot>`;
   }
 
   document.getElementById('dailySalesCards').innerHTML=dates.map(d=>{
-    const v=dayMap[d]; const drr=v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0;
-    const tops=Object.entries(v.brands).sort((a,b)=>b[1]-a[1]).slice(0,3);
-    return `<div class="day-card">
-      <div class="day-card-header"><span class="day-card-date">${d}</span><span class="day-card-total">₩${won(v.cAmt)}</span></div>
-      <div class="day-card-rows">
-        <div class="day-card-item"><div class="day-card-item-label">순매출</div><div class="day-card-item-val text-primary">₩${won(v.cAmt-v.rAmt)}</div></div>
-        <div class="day-card-item"><div class="day-card-item-label">반품금액</div><div class="day-card-item-val text-danger">${v.rAmt>0?'₩'+won(v.rAmt):'-'}</div></div>
-        <div class="day-card-item"><div class="day-card-item-label">완료건수</div><div class="day-card-item-val">${v.cCnt}건</div></div>
-        <div class="day-card-item"><div class="day-card-item-label">반품률</div><div class="day-card-item-val ${drr>=20?'text-danger':'text-success'}">${drr}%</div></div>
-      </div>
-      ${tops.length?`<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text-sub)">
-        ${tops.map(([b,a])=>`<span style="margin-right:8px">${esc(b)} ₩${won(a)}</span>`).join('')}
-      </div>`:''}
-    </div>`;
+    const v=dayMap[d]; const drr=v.cAmt>0?Math.round(v.rAmt/v.cAmt*100):0; const tops=Object.entries(v.brands).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    return `<div class="day-card"><div class="day-card-header"><span class="day-card-date">${d}</span><span class="day-card-total">₩${won(v.cAmt)}</span></div><div class="day-card-rows"><div class="day-card-item"><div class="day-card-item-label">순매출</div><div class="day-card-item-val text-primary">₩${won(v.cAmt-v.rAmt)}</div></div><div class="day-card-item"><div class="day-card-item-label">반품금액</div><div class="day-card-item-val text-danger">${v.rAmt>0?'₩'+won(v.rAmt):'-'}</div></div><div class="day-card-item"><div class="day-card-item-label">완료건수</div><div class="day-card-item-val">${v.cCnt}건</div></div><div class="day-card-item"><div class="day-card-item-label">반품률</div><div class="day-card-item-val ${drr>=20?'text-danger':'text-success'}">${drr}%</div></div></div>${tops.length?`<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text-sub)">${tops.map(([b,a])=>`<span style="margin-right:8px">${esc(b)} ₩${won(a)}</span>`).join('')}</div>`:''}</div>`;
   }).join('');
 }
 
-// ── 피벗 ──
 function renderPivot(data){
   if(!data) data=getData();
-  const keyMap={product_channel:['product','channel'],product_brand:['product','brand'],
-    date_brand:['date','brand'],date_channel:['date','channel'],
-    brand_channel:['brand','channel'],channel_brand:['channel','brand']};
+  const keyMap={product_channel:['product','channel'],product_brand:['product','brand'],date_brand:['date','brand'],date_channel:['date','channel'],brand_channel:['brand','channel'],channel_brand:['channel','brand']};
   const labelMap={date:'날짜',product:'상품명',brand:'브랜드',channel:'채널'};
   const [rowKey,colKey]=keyMap[document.getElementById('pivotSelect').value]||['date','brand'];
   const cd=data.filter(r=>r.status==='complete');
-  const rows=[...new Set(cd.map(r=>r[rowKey]))].sort();
-  const cols=[...new Set(cd.map(r=>r[colKey]))].sort();
-  const mat={};
-  cd.forEach(r=>{ if(!mat[r[rowKey]]) mat[r[rowKey]]={};  mat[r[rowKey]][r[colKey]]=(mat[r[rowKey]][r[colKey]]||0)+r.completeAmt; });
+  const rows=[...new Set(cd.map(r=>r[rowKey]))].sort(); const cols=[...new Set(cd.map(r=>r[colKey]))].sort();
+  const mat={}; cd.forEach(r=>{ if(!mat[r[rowKey]]) mat[r[rowKey]]={}; mat[r[rowKey]][r[colKey]]=(mat[r[rowKey]][r[colKey]]||0)+r.completeAmt; });
   const rowTotals={}; rows.forEach(r=>{ rowTotals[r]=cols.reduce((s,c)=>s+(mat[r]&&mat[r][c]||0),0); });
   const sortedRows=[...rows].sort((a,b)=>(rowTotals[b]||0)-(rowTotals[a]||0));
   const colTotals={}; cols.forEach(c=>{ colTotals[c]=rows.reduce((s,r)=>s+(mat[r]&&mat[r][c]||0),0); });
   const grand=Object.values(rowTotals).reduce((s,v)=>s+v,0);
-  document.getElementById('pivotTableWrap').innerHTML=`<table class="data-table">
-    <thead><tr><th>${labelMap[rowKey]}</th><th>합계</th>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead>
-    <tbody>${sortedRows.map(r=>`<tr>
-      <td style="text-align:left" title="${esc(r)}">${esc(String(r).slice(0,20))}${String(r).length>20?'…':''}</td>
-      <td style="font-weight:700;font-family:'DM Mono',monospace">₩${won(rowTotals[r])}</td>
-      ${cols.map(c=>`<td style="font-family:'DM Mono',monospace;color:${mat[r]&&mat[r][c]?'var(--text-main)':'var(--text-light)'}">
-        ${mat[r]&&mat[r][c]?'₩'+won(mat[r][c]):'-'}</td>`).join('')}
-    </tr>`).join('')}</tbody>
-    <tfoot><tr><td style="text-align:left">합계</td><td>₩${won(grand)}</td>
-      ${cols.map(c=>`<td style="font-family:'DM Mono',monospace">₩${won(colTotals[c]||0)}</td>`).join('')}
-    </tr></tfoot>
-  </table>`;
+  
+  document.getElementById('pivotTableWrap').innerHTML=`<table class="data-table"><thead><tr><th>${labelMap[rowKey]}</th><th>합계</th>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${sortedRows.map(r=>`<tr><td style="text-align:left" title="${esc(r)}">${esc(String(r).slice(0,20))}${String(r).length>20?'…':''}</td><td style="font-weight:700;font-family:'DM Mono',monospace">₩${won(rowTotals[r])}</td>${cols.map(c=>`<td style="font-family:'DM Mono',monospace;color:${mat[r]&&mat[r][c]?'var(--text-main)':'var(--text-light)'}">${mat[r]&&mat[r][c]?'₩'+won(mat[r][c]):'-'}</td>`).join('')}</tr>`).join('')}</tbody><tfoot><tr><td style="text-align:left">합계</td><td>₩${won(grand)}</td>${cols.map(c=>`<td style="font-family:'DM Mono',monospace">₩${won(colTotals[c]||0)}</td>`).join('')}</tr></tfoot></table>`;
 }
 
-// ── 히트맵 ──
 function renderHeatmap(data){
-  if(!data) data=getData();
-  const cd=data.filter(r=>r.status==='complete');
-  const brands=[...new Set(cd.map(r=>r.brand))].sort();
-  const channels=[...new Set(cd.map(r=>r.channel))].sort();
-  const mat={};
-  cd.forEach(r=>{ if(!mat[r.brand]) mat[r.brand]={}; mat[r.brand][r.channel]=(mat[r.brand][r.channel]||0)+r.completeAmt; });
+  if(!data) data=getData(); const cd=data.filter(r=>r.status==='complete');
+  const brands=[...new Set(cd.map(r=>r.brand))].sort(); const channels=[...new Set(cd.map(r=>r.channel))].sort();
+  const mat={}; cd.forEach(r=>{ if(!mat[r.brand]) mat[r.brand]={}; mat[r.brand][r.channel]=(mat[r.brand][r.channel]||0)+r.completeAmt; });
   const maxVal=Math.max(...brands.flatMap(b=>channels.map(c=>mat[b]&&mat[b][c]||0)));
-  document.getElementById('heatmapWrap').innerHTML=`<table class="data-table">
-    <thead><tr><th>브랜드</th>${channels.map(c=>`<th style="font-size:11px">${esc(c)}</th>`).join('')}</tr></thead>
-    <tbody>${brands.map(b=>`<tr>
-      <td style="text-align:left;font-weight:600">${esc(b)}</td>
-      ${channels.map(c=>{ const v=mat[b]&&mat[b][c]||0; const alpha=maxVal>0?(v/maxVal)*0.85+0.03:0.03;
-        return `<td style="background:rgba(37,99,235,${alpha});color:${v/maxVal>0.5?'#fff':'var(--text-main)'};font-family:'DM Mono',monospace;font-size:12px">
-          ${v>0?'₩'+won(v):'-'}</td>`; }).join('')}
-    </tr>`).join('')}</tbody>
-  </table>`;
+  document.getElementById('heatmapWrap').innerHTML=`<table class="data-table"><thead><tr><th>브랜드</th>${channels.map(c=>`<th style="font-size:11px">${esc(c)}</th>`).join('')}</tr></thead><tbody>${brands.map(b=>`<tr><td style="text-align:left;font-weight:600">${esc(b)}</td>${channels.map(c=>{ const v=mat[b]&&mat[b][c]||0; const alpha=maxVal>0?(v/maxVal)*0.85+0.03:0.03; return `<td style="background:rgba(37,99,235,${alpha});color:${v/maxVal>0.5?'#fff':'var(--text-main)'};font-family:'DM Mono',monospace;font-size:12px">${v>0?'₩'+won(v):'-'}</td>`; }).join('')}</tr>`).join('')}</tbody></table>`;
 }
 
 // ═══════════════════════════════════
-// ★ 중복 데이터 정리 로직
+// ★ 과거 중복/브랜드명 데이터 싹 정리하기 (개선)
 // ═══════════════════════════════════
 async function cleanUpDuplicates() {
-  if (!confirm('현재 서버에 누적된 중복 데이터를 정리하시겠습니까? (주문번호 기준)')) return;
+  if (!confirm('현재 서버에 누적된 과거 데이터를 통합(정규화)하고 중복을 정리하시겠습니까? (주문번호 기준)')) return;
 
   const uniqueRecords = new Map();
   let duplicateCount = 0;
 
   DB.forEach(r => {
+    // 1. 브랜드명과 그룹 강제 재설정
+    r.brand = normalizeBrandName(r.brand);
+    r.group = getGroup(r.brand);
+
+    // 2. 키 정리
     let key = r._dedupeKey;
     if (!key) {
        if (r.fileType === 'sabangnet') {
@@ -1288,7 +1091,7 @@ async function cleanUpDuplicates() {
        } else if (r.fileType === 'riobell') {
          key = `R_${r.date}_${r.channel}_${r.orderId}`;
        } else {
-         key = `${r.date}_${r.orderId}_${r.brand}_${r.status}`; // 예외 상황용
+         key = `${r.date}_${r.orderId}_${r.brand}_${r.status}`; 
        }
        r._dedupeKey = key;
     }
@@ -1300,16 +1103,11 @@ async function cleanUpDuplicates() {
     }
   });
 
-  if (duplicateCount === 0) {
-     showToast('중복된 데이터가 없습니다! 깔끔하네요.');
-     return;
-  }
-
   const cleanedDB = Array.from(uniqueRecords.values());
   cleanedDB.sort((a,b)=>a.date.localeCompare(b.date));
 
   await database.ref('hana_ops_live/records').set(cleanedDB);
-  showToast(`중복 데이터 ${duplicateCount}건 삭제 완료! 이제 수치가 정확해집니다.`);
+  showToast(`통합 완료! 중복 데이터 ${duplicateCount}건이 정리되었습니다.`);
   document.getElementById('settingsModal').classList.remove('show');
 }
 
@@ -1318,7 +1116,7 @@ async function cleanUpDuplicates() {
 // ═══════════════════════════════════
 function backupData(){
   if(!DB.length){ showToast('백업할 데이터가 없습니다'); return; }
-  const blob=new Blob([JSON.stringify({version:'5.7',db:DB,goals:monthlyGoals,brandMap,groups:groupList})],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({version:'5.8',db:DB,goals:monthlyGoals,brandMap,groups:groupList})],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download=`HanA_OPS_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
   document.getElementById('settingsModal').classList.remove('show');
@@ -1348,9 +1146,7 @@ async function clearData(){
   document.getElementById('settingsModal').classList.remove('show');
 }
 
-// ═══════════════════════════════════
-// 초기화
-// ═══════════════════════════════════
+// 초기 셋팅
 setQuickDate('thisMonth');
 window.addEventListener('resize',()=>{ if(curTab==='overview'||curTab==='daily_sales') renderAll(); });
 </script>
