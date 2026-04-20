@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Han-A OPS v5.8 (브랜드 통합 및 매핑 수정)</title>
+<title>Han-A OPS v8.2 (월별추이 + 상품별매출 추가)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -119,6 +119,27 @@
   .day-card-item-val{font-size:13px;font-weight:700;font-family:'DM Mono',monospace;}
   .daily-chart-wrap{height:250px;position:relative;margin-bottom:16px;}
 
+  /* ── 차트 하단 요약 테이블 ── */
+  .chart-summary{margin-top:16px;overflow-x:auto;}
+  .chart-summary-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .chart-summary-table th{background:var(--bg-main);color:var(--text-sub);font-weight:600;padding:8px 12px;text-align:right;border-bottom:2px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;}
+  .chart-summary-table th:first-child{text-align:left;position:sticky;left:0;background:var(--border);z-index:5;min-width:80px;}
+  .chart-summary-table td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--border);border-right:1px solid var(--border);font-family:'DM Mono',monospace;background:var(--bg-card);white-space:nowrap;}
+  .chart-summary-table td:first-child{text-align:left;font-weight:600;position:sticky;left:0;background:var(--bg-main);z-index:5;font-family:'Noto Sans KR',sans-serif;}
+  .chart-summary-table tfoot td{background:var(--bg-main)!important;font-weight:700;}
+  .chart-summary-table tfoot td:first-child{background:var(--border)!important;}
+
+  /* ── 상품별 바 차트 ── */
+  .product-chart-wrap{height:400px;position:relative;margin-bottom:16px;}
+  .product-summary{margin-top:16px;}
+  .product-summary-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .product-summary-table th{background:var(--bg-main);color:var(--text-sub);font-weight:600;padding:8px 12px;text-align:right;border-bottom:2px solid var(--border);border-right:1px solid var(--border);}
+  .product-summary-table th:first-child,.product-summary-table th:nth-child(2){text-align:left;}
+  .product-summary-table td{padding:8px 12px;text-align:right;border-bottom:1px solid var(--border);border-right:1px solid var(--border);font-family:'DM Mono',monospace;background:var(--bg-card);white-space:nowrap;}
+  .product-summary-table td:first-child{text-align:right;font-weight:700;color:var(--text-sub);font-size:11px;min-width:36px;}
+  .product-summary-table td:nth-child(2){text-align:left;font-family:'Noto Sans KR',sans-serif;font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;}
+  .product-summary-table tfoot td{background:var(--bg-main)!important;font-weight:700;}
+
   /* ── 브랜드 매핑 관리 ── */
   .brand-map-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
   .brand-map-row:last-child{border-bottom:none;}
@@ -169,8 +190,6 @@
     .dvt-btn[data-view="table"]{display:none;}
     .filter-box{display:none;}
     .mobile-date-bar{display:flex!important;}
-    
-    /* 모바일에서는 데스크톱 탭 숨기고 모바일 탭 표시 */
     .group-tabs{display:none;} 
     .chip-bar{display:flex!important;} 
   }
@@ -181,8 +200,6 @@
   .mobile-date-bar{display:none;align-items:center;gap:6px;background:var(--bg-main);padding:8px 14px;border-bottom:1px solid var(--border);}
   .mobile-date-bar input{border:none;background:transparent;font-family:'DM Mono',monospace;font-size:12px;outline:none;color:var(--text-main);}
   .mobile-date-bar .btn-quick{font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:16px;background:#fff;}
-  
-  /* 기본(PC) 화면에서는 모바일 탭을 가림 (display:none) */
   .chip-bar{display:none;gap:6px;overflow-x:auto;padding:6px 14px;border-bottom:1px solid var(--border);scrollbar-width:none;background:var(--bg-card);}
   .chip-bar::-webkit-scrollbar{display:none;}
   .chip{padding:5px 14px;border-radius:16px;border:1px solid var(--border);background:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;color:var(--text-sub);}
@@ -195,10 +212,10 @@
   <div class="logo">Han<em>-</em>A <span class="live-badge">LIVE</span></div>
   <div class="tabs">
     <button class="tab active"          onclick="switchTab('overview',this)">전체 현황</button>
-    <button class="tab daily-highlight" onclick="switchTab('daily_sales',this)">📅 일자별 매출</button>
-    <button class="tab"                 onclick="switchTab('monthly',this)">월별 추이</button>
+    <button class="tab daily-highlight" onclick="switchTab('daily_sales',this)">📅 일자별</button>
     <button class="tab"                 onclick="switchTab('pivot',this)">다차원 실적</button>
     <button class="tab"                 onclick="switchTab('heatmap',this)">히트맵</button>
+    <button class="tab"                 onclick="switchTab('report',this)">📋 보고서</button>
   </div>
   <div class="topnav-right">
     <div class="filter-box">
@@ -273,13 +290,34 @@
     </div>
   </div>
 
+  <!-- ══ 전체 현황 탭 ══ -->
   <div id="page-overview" class="page active">
     <div class="main-grid">
       <div>
         <div class="card">
-          <div class="card-title">매출 추이 (완료금액)</div>
+          <div class="card-title">매출 추이 (완료금액, 최근 30일)</div>
           <div style="height:260px;position:relative"><canvas id="mainChart"></canvas></div>
         </div>
+
+        <!-- ★ 월별 추이 섹션 -->
+        <div class="card">
+          <div class="card-title">
+            <span>📅 월별 추이</span>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="monthlyMetric" class="btn-outline" style="padding:5px 10px;font-size:12px" onchange="renderMonthlyTrend()">
+                <option value="sales">완료금액</option>
+                <option value="net">순매출</option>
+                <option value="return">반품금액</option>
+              </select>
+            </div>
+          </div>
+          <div style="height:240px;position:relative;margin-bottom:8px">
+            <canvas id="monthlyChart"></canvas>
+          </div>
+          <!-- 차트 아래 수량/매출액 요약 표 -->
+          <div class="chart-summary" id="monthlySummaryWrap"></div>
+        </div>
+
         <div class="card">
           <div class="card-title">브랜드별 실적</div>
           <div class="brand-grid" id="brandGrid"></div>
@@ -306,6 +344,7 @@
     </div>
   </div>
 
+  <!-- ══ 일자별 탭 ══ -->
   <div id="page-daily_sales" class="page">
     <div class="card">
       <div class="card-title">
@@ -331,13 +370,27 @@
     </div>
   </div>
 
-  <div id="page-monthly" class="page">
-    <div class="card" style="text-align:center;padding:80px;color:var(--text-sub)">
-      <h2>월별 추이</h2><p style="margin-top:8px">추후 업데이트 예정</p>
-    </div>
-  </div>
-
+  <!-- ══ 다차원 실적 탭 ══ -->
   <div id="page-pivot" class="page">
+    <!-- ★ 상품별 매출 섹션 -->
+    <div class="card">
+      <div class="card-title">
+        <span>🏷️ 상품별 매출 Top 30</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="productSortSel" class="btn-outline" style="padding:5px 10px;font-size:12px" onchange="renderProductChart()">
+            <option value="sales">완료금액순</option>
+            <option value="qty">수량순</option>
+            <option value="net">순매출순</option>
+          </select>
+        </div>
+      </div>
+      <div class="product-chart-wrap">
+        <canvas id="productChart"></canvas>
+      </div>
+      <!-- 차트 아래 수량/매출액 표 -->
+      <div class="product-summary" id="productSummaryWrap"></div>
+    </div>
+
     <div class="card">
       <div class="card-title">
         <span>다차원 실적 테이블 (피벗)</span>
@@ -360,6 +413,7 @@
     </div>
   </div>
 
+  <!-- ══ 히트맵 탭 ══ -->
   <div id="page-heatmap" class="page">
     <div class="card">
       <div class="card-title">브랜드 × 채널 집중도 히트맵</div>
@@ -368,8 +422,16 @@
       </div>
     </div>
   </div>
+
+  <!-- ══ 보고서 탭 ══ -->
+  <div id="page-report" class="page">
+    <div class="card" style="text-align:center;padding:80px;color:var(--text-sub)">
+      <h2>📋 보고서</h2><p style="margin-top:8px">추후 업데이트 예정</p>
+    </div>
+  </div>
 </div>
 
+<!-- ══ 설정 모달 ══ -->
 <div class="modal-overlay" id="settingsModal">
   <div class="upload-box" style="max-width:560px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
@@ -386,9 +448,7 @@
       <button class="btn-upload" style="width:100%;justify-content:center;padding:13px;margin-bottom:10px" onclick="backupData()">💾 서버 데이터 백업</button>
       <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(event)">
       <button class="btn-outline" style="width:100%;justify-content:center;padding:13px;margin-bottom:10px" onclick="document.getElementById('restoreInput').click()">📂 백업 파일로 복원</button>
-      
       <button class="btn-outline" style="width:100%;justify-content:center;padding:13px;margin-bottom:10px;border-color:var(--warning);color:var(--warning)" onclick="cleanUpDuplicates()">🧹 과거 데이터 통합 및 중복 정리하기</button>
-
       <div style="border-top:1px solid var(--border);margin:20px 0"></div>
       <button class="btn-outline" style="width:100%;justify-content:center;border-color:var(--danger-light);color:var(--danger)" onclick="clearData()">🚨 서버 데이터 전체 삭제</button>
     </div>
@@ -409,9 +469,7 @@
       </div>
       <div style="margin-top:14px;display:flex;gap:8px">
         <input type="text" id="newBrandName" placeholder="브랜드명 직접 추가" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;font-family:'DM Mono',monospace">
-        <select id="newBrandGroup" class="group-select">
-          <option value="">그룹 선택</option>
-        </select>
+        <select id="newBrandGroup" class="group-select"><option value="">그룹 선택</option></select>
         <button class="btn-upload" style="padding:7px 14px;font-size:12px" onclick="addBrandMapEntry()">추가</button>
       </div>
     </div>
@@ -429,6 +487,7 @@
   </div>
 </div>
 
+<!-- ══ 업로드 모달 ══ -->
 <div class="modal-overlay" id="uploadModal">
   <div class="upload-box" style="text-align:center;max-width:440px">
     <h2 style="margin-bottom:6px">Excel Upload</h2>
@@ -444,6 +503,7 @@
   </div>
 </div>
 
+<!-- ══ 브랜드 매핑 모달 ══ -->
 <div class="modal-overlay" id="mappingModal">
   <div class="mapping-modal-inner">
     <h2 style="margin-bottom:6px">🏷️ 신규 브랜드 감지</h2>
@@ -456,6 +516,7 @@
   </div>
 </div>
 
+<!-- ══ 목표 모달 ══ -->
 <div class="modal-overlay" id="goalModal">
   <div class="upload-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
@@ -487,7 +548,6 @@
 // 🔥 Firebase Configuration
 // ═══════════════════════════════════
 const firebaseConfig = {
-  // 여기에 발급받으신 파이어베이스 설정값을 붙여넣어주세요!
   apiKey:"AIzaSyBBk2BwwnAYJ9WzY8MJfcbHQZO3rZkjxY4",
   authDomain:"hana-db-64d44.firebaseapp.com",
   databaseURL:"https://hana-db-64d44-default-rtdb.firebaseio.com",
@@ -502,7 +562,7 @@ const database = firebase.database();
 // ═══════════════════════════════════
 // 상태
 // ═══════════════════════════════════
-let DB = [], chartInstance = null, dailyChartInstance = null;
+let DB = [], chartInstance = null, dailyChartInstance = null, monthlyChartInstance = null, productChartInstance = null;
 let curTab = 'overview', curGroup = 'all', monthlyGoals = {};
 let dailyView = 'chart';
 let brandMap  = {};
@@ -515,7 +575,6 @@ function normalizeBrandName(b) {
   if (!b) return '미분류';
   const s = String(b).trim();
   const up = s.toUpperCase();
-  
   if (up === 'ENNITTUDE' || s === '엔니튜드') return '엔니튜드';
   if (s === '헤니트' || s === '헤니트2') return '헤니트';
   if (up === 'BESTI BELLI' || s === '베스띠벨리') return '베스띠벨리';
@@ -524,11 +583,9 @@ function normalizeBrandName(b) {
   if (up === 'MARIBON' || s === '마리본') return '마리본';
   if (up === 'JASON WU' || s === '제이슨우') return '제이슨우';
   if (up === 'MAX STUDIO' || s === '막스스튜디오') return '막스스튜디오';
-  
   return s;
 }
 
-// ── ★ 하드코딩 그룹 매핑 (수정됨) ──
 const HARDCODED_MAP = {
   '씨':'신원','베스띠벨리':'신원','지이크':'신원','파렌하이트':'신원',
   '리오벨':'라성','헤니트':'라성','드베터':'라성',
@@ -550,7 +607,6 @@ function pct(a,b){ return b>0?Math.round(a/b*100):0; }
 // 브랜드 → 그룹
 // ═══════════════════════════════════
 function getGroup(brandName){
-  // 이미 정규화된 브랜드명이 들어온다고 가정
   const s = String(brandName||'').trim();
   if(brandMap[s]) return brandMap[s];
   if(HARDCODED_MAP[s]) return HARDCODED_MAP[s];
@@ -567,7 +623,6 @@ database.ref('hana_ops_live').on('value', snapshot=>{
   brandMap     = data.brand_map || {};
   groupList    = data.groups    || [...DEFAULT_GROUPS];
 
-  // 화면 표시용: 불러올 때 브랜드명 정규화 및 그룹 재계산 반영
   DB = rawDB.map(r => {
     const nb = normalizeBrandName(r.brand);
     return { ...r, brand: nb, group: getGroup(nb) };
@@ -590,10 +645,8 @@ database.ref('hana_ops_live').on('value', snapshot=>{
 function renderGroupTabs(){
   const desktop = document.getElementById('desktopGroupTabs');
   const mobile  = document.getElementById('mobileChipBar');
-
   desktop.innerHTML = `<button class="g-tab ${curGroup==='all'?'active':''}" onclick="setGroup('all',this)">전체보기</button>`
     + groupList.map(g=>`<button class="g-tab ${curGroup===g?'active':''}" onclick="setGroup('${esc(g)}',this)">${esc(g)}</button>`).join('');
-
   mobile.innerHTML = `<span class="chip ${curGroup==='all'?'active':''}" onclick="setGroupMobile('all',this)">전체</span>`
     + groupList.map(g=>`<span class="chip ${curGroup===g?'active':''}" onclick="setGroupMobile('${esc(g)}',this)">${esc(g)}</span>`).join('');
 }
@@ -654,7 +707,7 @@ function switchTab(tabId,el){
 }
 
 // ═══════════════════════════════════
-// Settings Modal (설정 / 매핑)
+// Settings Modal
 // ═══════════════════════════════════
 function openSettingsModal(){ renderBrandMapPanel(); renderGroupPanel(); document.getElementById('settingsModal').classList.add('show'); }
 function switchModalTab(tab,el){
@@ -670,11 +723,9 @@ function renderBrandMapPanel(){
   const allBrands = new Set([ ...Object.keys(brandMap), ...Object.keys(HARDCODED_MAP), ...DB.map(r=>r.brand).filter(Boolean) ]);
   const unmatched = [...allBrands].filter(b=>getGroup(b)==='기타');
   const matched   = [...allBrands].filter(b=>getGroup(b)!=='기타').sort();
-
   const unSection = document.getElementById('unmappedSection');
   if(unmatched.length>0){ unSection.style.display='block'; document.getElementById('unmappedList').innerHTML = unmatched.map(b=>brandMapRowHtml(b, '')).join(''); } 
   else { unSection.style.display='none'; }
-
   document.getElementById('brandMapList').innerHTML = matched.length===0
       ? '<div style="padding:30px;text-align:center;color:var(--text-light)">등록된 매핑 없음</div>'
       : matched.map(b=>brandMapRowHtml(b, getGroup(b))).join('');
@@ -739,12 +790,10 @@ function handleFiles(files){
   const arr=[...files].filter(f=>/\.(xlsx|xls)$/i.test(f.name));
   if(!arr.length){ showToast('xlsx 파일을 선택해주세요'); return; }
   document.getElementById('pbText').textContent='분석 중...';
-
   Promise.all(arr.map(parseXLSX)).then(results=>{
     document.getElementById('pbText').textContent='';
     const allBrands = new Set(results.flatMap(r=>r.map(rec=>rec.brand)));
     const newUnmatched = [...allBrands].filter(b=>b && b!=='미분류' && getGroup(b)==='기타');
-
     if(newUnmatched.length>0){
       _pendingUploadResults = results; showMappingModal(newUnmatched);
     } else { doUpload(results); }
@@ -785,13 +834,10 @@ async function doUpload(results){
     newDB=newDB.concat(parsed);
   });
   newDB.sort((a,b)=>a.date.localeCompare(b.date));
-  
-  // 파이어베이스 저장 전 정규화 + 최신 그룹 매핑 확정 저장
   const cleanDB = newDB.map(r => {
     const nb = normalizeBrandName(r.brand);
     return { ...r, brand: nb, group: getGroup(nb) };
   });
-
   await database.ref('hana_ops_live/records').set(cleanDB);
   document.getElementById('uploadModal').classList.remove('show');
   document.getElementById('pbText').textContent='';
@@ -822,11 +868,9 @@ function parseXLSX(file) {
         const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
         const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1, defval:null, raw:false});
         const res = []; const isSabangnet = String(rows[0][0]||'').trim() === 'No.';
-        
         for(let i=1; i<rows.length; i++) {
           const r = rows[i]; if(!r[0] && !r[1]) continue;
           let dateStr = "";
-          
           if (isSabangnet) {
             dateStr = String(r[4]||'').substring(0,10).replace(/[.\/]/g, '-');
           } else {
@@ -834,19 +878,14 @@ function parseXLSX(file) {
             dateStr = `${y}-${m}-${d}`;
           }
           if (!dateStr || dateStr.length !== 10 || dateStr.includes('undefined')) continue;
-          
           const statusStr = isSabangnet ? String(r[3]||'') : String(r[29]||'');
           const status = (statusStr.includes('반품') || statusStr.includes('취소')) ? 'return' : 'complete';
-          
           const rawBrand = (isSabangnet ? r[2] : r[18]) || '미분류';
-          const brand = normalizeBrandName(rawBrand); // ★ 정규화 적용
-          
+          const brand = normalizeBrandName(rawBrand);
           const price = parseFloat(String(isSabangnet ? r[23] : r[22]||'0').replace(/[,\s₩]/g, '')) || 0;
           const qty = parseFloat(String(isSabangnet ? r[11] : r[23]||'1').replace(/[,\s₩]/g, '')) || 1;
-          
           const orderId = String(isSabangnet ? r[7] : r[7]||'').trim();
           const channel = String(isSabangnet ? r[1] : r[5]||'기타').trim();
-
           res.push({
             date: dateStr, ym: dateStr.substring(0,7), brand: brand, group: getGroup(brand),
             channel: channel, product: String(isSabangnet ? r[9] : r[19]||'').trim(),
@@ -872,6 +911,14 @@ function getData(){
   return DB.filter(r=>{
     if(from&&r.date<from) return false;
     if(to  &&r.date>to  ) return false;
+    if(curGroup!=='all'&&r.group!==curGroup) return false;
+    return true;
+  });
+}
+
+// 전체 데이터 (날짜 필터 없이, 월별 추이용)
+function getAllData(){
+  return DB.filter(r=>{
     if(curGroup!=='all'&&r.group!==curGroup) return false;
     return true;
   });
@@ -943,9 +990,9 @@ function renderAll(){
     document.getElementById('kpi-goal-fill').style.width='0%';
   }
 
-  if(curTab==='overview')    { renderOverviewChart(data); renderBrands(data); }
+  if(curTab==='overview')    { renderOverviewChart(data); renderMonthlyTrend(); renderBrands(data); }
   if(curTab==='daily_sales') { renderDailySales(data); }
-  if(curTab==='pivot')       { renderPivot(data); }
+  if(curTab==='pivot')       { renderProductChart(data); renderPivot(data); }
   if(curTab==='heatmap')     { renderHeatmap(data); }
 }
 
@@ -964,6 +1011,219 @@ function renderOverviewChart(data){
     data:{labels:dates.map(d=>[d.slice(5),toManWon(dayMap[d].cAmt)]), datasets:[{label:'완료금액',data:dates.map(d=>dayMap[d].cAmt),backgroundColor:'#DBEAFE',hoverBackgroundColor:'#2563EB',borderRadius:4}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:11,family:"'DM Mono',monospace"}}},y:{ticks:{callback:v=>wonK(v)}}}}
   });
+}
+
+// ═══════════════════════════════════
+// ★ 월별 추이 렌더링
+// ═══════════════════════════════════
+function renderMonthlyTrend(){
+  // 전체 DB에서 그룹 필터만 적용 (날짜 제한 없음)
+  const data = getAllData();
+  const metric = document.getElementById('monthlyMetric').value;
+
+  const ymMap = {};
+  data.forEach(r => {
+    if(!ymMap[r.ym]) ymMap[r.ym] = { cAmt:0, rAmt:0, cQty:0, rQty:0 };
+    if(r.status==='complete'){ ymMap[r.ym].cAmt+=r.completeAmt; ymMap[r.ym].cQty+=r.qty; }
+    if(r.status==='return')  { ymMap[r.ym].rAmt+=r.retAmt;      ymMap[r.ym].rQty+=r.qty; }
+  });
+
+  const months = Object.keys(ymMap).sort();
+  if(months.length === 0){ 
+    if(monthlyChartInstance){ monthlyChartInstance.destroy(); monthlyChartInstance=null; }
+    document.getElementById('monthlySummaryWrap').innerHTML='<div style="padding:20px;text-align:center;color:var(--text-light)">데이터 없음</div>';
+    return; 
+  }
+
+  // 차트 값 결정
+  const getVal = (ym) => {
+    if(metric==='sales') return ymMap[ym].cAmt;
+    if(metric==='net')   return ymMap[ym].cAmt - ymMap[ym].rAmt;
+    if(metric==='return')return ymMap[ym].rAmt;
+    return 0;
+  };
+  const metricLabel = {sales:'완료금액', net:'순매출', return:'반품금액'}[metric];
+  const metricColor = {sales:'#DBEAFE', net:'#dcfce7', return:'#FEE2E2'}[metric];
+  const metricHover = {sales:'#2563EB', net:'#16A34A', return:'#DC2626'}[metric];
+
+  if(monthlyChartInstance) monthlyChartInstance.destroy();
+  monthlyChartInstance = new Chart(document.getElementById('monthlyChart').getContext('2d'), {
+    type:'bar',
+    data:{
+      labels: months.map(m => m.slice(0,7)),
+      datasets:[{
+        label: metricLabel,
+        data: months.map(m => getVal(m)),
+        backgroundColor: metricColor,
+        hoverBackgroundColor: metricHover,
+        borderRadius: 4
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => `₩${won(ctx.raw)}` } } },
+      scales:{
+        x:{ ticks:{ font:{size:11,family:"'DM Mono',monospace"} } },
+        y:{ ticks:{ callback: v => wonK(v) } }
+      }
+    }
+  });
+
+  // ── 차트 아래 수량/매출액 요약 표 ──
+  const totCQty  = months.reduce((s,m)=>s+ymMap[m].cQty,0);
+  const totRQty  = months.reduce((s,m)=>s+ymMap[m].rQty,0);
+  const totCAmt  = months.reduce((s,m)=>s+ymMap[m].cAmt,0);
+  const totRAmt  = months.reduce((s,m)=>s+ymMap[m].rAmt,0);
+  const totNet   = totCAmt - totRAmt;
+
+  const headerCols = months.map(m=>`<th>${m}</th>`).join('');
+  const rowSalesAmt = months.map(m=>`<td class="text-primary">₩${won(ymMap[m].cAmt)}</td>`).join('');
+  const rowSalesQty = months.map(m=>`<td>${ymMap[m].cQty.toLocaleString()}건</td>`).join('');
+  const rowNetAmt   = months.map(m=>`<td style="font-weight:600">₩${won(ymMap[m].cAmt-ymMap[m].rAmt)}</td>`).join('');
+  const rowRetAmt   = months.map(m=>`<td class="text-danger">${ymMap[m].rAmt>0?'₩'+won(ymMap[m].rAmt):'-'}</td>`).join('');
+  const rowRetQty   = months.map(m=>`<td>${ymMap[m].rQty>0?ymMap[m].rQty.toLocaleString()+'건':'-'}</td>`).join('');
+  const rowRetRate  = months.map(m=>{ const rr=ymMap[m].cAmt>0?Math.round(ymMap[m].rAmt/ymMap[m].cAmt*100):0; return `<td><span class="badge ${rr>=20?'badge-danger':'badge-success'}">${rr}%</span></td>`; }).join('');
+
+  document.getElementById('monthlySummaryWrap').innerHTML = `
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px;margin-top:4px">
+      <table class="chart-summary-table">
+        <thead><tr><th>항목</th>${headerCols}<th>합계</th></tr></thead>
+        <tbody>
+          <tr><td>완료금액</td>${rowSalesAmt}<td class="text-primary" style="font-weight:700">₩${won(totCAmt)}</td></tr>
+          <tr><td>완료수량</td>${rowSalesQty}<td style="font-weight:700">${totCQty.toLocaleString()}건</td></tr>
+          <tr><td>순매출</td>${rowNetAmt}<td style="font-weight:700">₩${won(totNet)}</td></tr>
+          <tr><td>반품금액</td>${rowRetAmt}<td class="text-danger" style="font-weight:700">${totRAmt>0?'₩'+won(totRAmt):'-'}</td></tr>
+          <tr><td>반품수량</td>${rowRetQty}<td style="font-weight:700">${totRQty>0?totRQty.toLocaleString()+'건':'-'}</td></tr>
+          <tr><td>반품률</td>${rowRetRate}<td><span class="badge ${totCAmt>0&&Math.round(totRAmt/totCAmt*100)>=20?'badge-danger':'badge-success'}">${totCAmt>0?Math.round(totRAmt/totCAmt*100):0}%</span></td></tr>
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ═══════════════════════════════════
+// ★ 상품별 매출 Top 30
+// ═══════════════════════════════════
+function renderProductChart(data){
+  if(!data) data = getData();
+  const sortKey = document.getElementById('productSortSel').value;
+  const cd = data.filter(r=>r.status==='complete');
+  const rd = data.filter(r=>r.status==='return');
+
+  // 상품별 집계
+  const pMap = {};
+  cd.forEach(r=>{
+    const key = r.product || '(상품명 없음)';
+    if(!pMap[key]) pMap[key] = { sales:0, qty:0, retAmt:0, retQty:0 };
+    pMap[key].sales += r.completeAmt;
+    pMap[key].qty   += r.qty;
+  });
+  rd.forEach(r=>{
+    const key = r.product || '(상품명 없음)';
+    if(!pMap[key]) pMap[key] = { sales:0, qty:0, retAmt:0, retQty:0 };
+    pMap[key].retAmt += r.retAmt;
+    pMap[key].retQty += r.qty;
+  });
+
+  // 정렬 & Top 30
+  const sorted = Object.entries(pMap)
+    .map(([name, v]) => ({ name, ...v, net: v.sales - v.retAmt }))
+    .sort((a,b) => {
+      if(sortKey==='qty') return b.qty - a.qty;
+      if(sortKey==='net') return b.net - a.net;
+      return b.sales - a.sales;
+    })
+    .slice(0, 30);
+
+  if(sorted.length === 0){
+    if(productChartInstance){ productChartInstance.destroy(); productChartInstance=null; }
+    document.getElementById('productSummaryWrap').innerHTML='<div style="padding:20px;text-align:center;color:var(--text-light)">데이터 없음</div>';
+    return;
+  }
+
+  // 가로 막대 차트
+  if(productChartInstance) productChartInstance.destroy();
+  // 차트 높이는 항목 수에 맞게 조정
+  const chartHeight = Math.max(300, sorted.length * 28);
+  document.querySelector('.product-chart-wrap').style.height = chartHeight + 'px';
+
+  productChartInstance = new Chart(document.getElementById('productChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(p => p.name.length > 22 ? p.name.slice(0,22)+'…' : p.name),
+      datasets: [{
+        label: sortKey==='qty' ? '판매수량(건)' : (sortKey==='net' ? '순매출' : '완료금액'),
+        data: sorted.map(p => sortKey==='qty' ? p.qty : (sortKey==='net' ? p.net : p.sales)),
+        backgroundColor: sortKey==='qty' ? '#E0E7FF' : (sortKey==='net' ? '#dcfce7' : '#DBEAFE'),
+        hoverBackgroundColor: sortKey==='qty' ? '#4F46E5' : (sortKey==='net' ? '#16A34A' : '#2563EB'),
+        borderRadius: 3
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => sortKey==='qty' ? `${ctx.raw.toLocaleString()}건` : `₩${won(ctx.raw)}` } }
+      },
+      scales: {
+        x: { ticks: { callback: v => sortKey==='qty' ? v.toLocaleString() : wonK(v), font:{size:11} } },
+        y: { ticks: { font:{size:11, family:"'Noto Sans KR',sans-serif"} } }
+      }
+    }
+  });
+
+  // ── 차트 아래 수량/매출액 표 ──
+  const totSales = sorted.reduce((s,p)=>s+p.sales,0);
+  const totQty   = sorted.reduce((s,p)=>s+p.qty,0);
+  const totNet   = sorted.reduce((s,p)=>s+p.net,0);
+  const totRet   = sorted.reduce((s,p)=>s+p.retAmt,0);
+  const totRQty  = sorted.reduce((s,p)=>s+p.retQty,0);
+
+  const rows = sorted.map((p,i) => {
+    const rr = p.sales>0 ? Math.round(p.retAmt/p.sales*100) : 0;
+    return `<tr>
+      <td>${i+1}</td>
+      <td title="${esc(p.name)}">${esc(p.name.length>28?p.name.slice(0,28)+'…':p.name)}</td>
+      <td class="text-primary">₩${won(p.sales)}</td>
+      <td>${p.qty.toLocaleString()}건</td>
+      <td style="font-weight:600">₩${won(p.net)}</td>
+      <td class="text-danger">${p.retAmt>0?'₩'+won(p.retAmt):'-'}</td>
+      <td>${p.retQty>0?p.retQty+'건':'-'}</td>
+      <td><span class="badge ${rr>=20?'badge-danger':'badge-success'}">${rr}%</span></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('productSummaryWrap').innerHTML = `
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px">
+      <table class="product-summary-table">
+        <thead>
+          <tr>
+            <th style="text-align:right;min-width:36px">#</th>
+            <th style="text-align:left;min-width:140px">상품명</th>
+            <th>완료금액</th>
+            <th>판매수량</th>
+            <th>순매출</th>
+            <th>반품금액</th>
+            <th>반품수량</th>
+            <th>반품률</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+        <tfoot>
+          <tr>
+            <td></td>
+            <td style="text-align:left;font-family:'Noto Sans KR',sans-serif;font-weight:700">합계 (Top ${sorted.length})</td>
+            <td class="text-primary">₩${won(totSales)}</td>
+            <td>${totQty.toLocaleString()}건</td>
+            <td style="font-weight:700">₩${won(totNet)}</td>
+            <td class="text-danger">${totRet>0?'₩'+won(totRet):'-'}</td>
+            <td>${totRQty>0?totRQty+'건':'-'}</td>
+            <td><span class="badge ${totSales>0&&Math.round(totRet/totSales*100)>=20?'badge-danger':'badge-success'}">${totSales>0?Math.round(totRet/totSales*100):0}%</span></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>`;
 }
 
 function renderBrands(data){
@@ -1057,7 +1317,6 @@ function renderPivot(data){
   const sortedRows=[...rows].sort((a,b)=>(rowTotals[b]||0)-(rowTotals[a]||0));
   const colTotals={}; cols.forEach(c=>{ colTotals[c]=rows.reduce((s,r)=>s+(mat[r]&&mat[r][c]||0),0); });
   const grand=Object.values(rowTotals).reduce((s,v)=>s+v,0);
-  
   document.getElementById('pivotTableWrap').innerHTML=`<table class="data-table"><thead><tr><th>${labelMap[rowKey]}</th><th>합계</th>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${sortedRows.map(r=>`<tr><td style="text-align:left" title="${esc(r)}">${esc(String(r).slice(0,20))}${String(r).length>20?'…':''}</td><td style="font-weight:700;font-family:'DM Mono',monospace">₩${won(rowTotals[r])}</td>${cols.map(c=>`<td style="font-family:'DM Mono',monospace;color:${mat[r]&&mat[r][c]?'var(--text-main)':'var(--text-light)'}">${mat[r]&&mat[r][c]?'₩'+won(mat[r][c]):'-'}</td>`).join('')}</tr>`).join('')}</tbody><tfoot><tr><td style="text-align:left">합계</td><td>₩${won(grand)}</td>${cols.map(c=>`<td style="font-family:'DM Mono',monospace">₩${won(colTotals[c]||0)}</td>`).join('')}</tr></tfoot></table>`;
 }
 
@@ -1070,42 +1329,27 @@ function renderHeatmap(data){
 }
 
 // ═══════════════════════════════════
-// ★ 과거 중복/브랜드명 데이터 싹 정리하기 (개선)
+// 과거 데이터 정리
 // ═══════════════════════════════════
 async function cleanUpDuplicates() {
   if (!confirm('현재 서버에 누적된 과거 데이터를 통합(정규화)하고 중복을 정리하시겠습니까? (주문번호 기준)')) return;
-
   const uniqueRecords = new Map();
   let duplicateCount = 0;
-
   DB.forEach(r => {
-    // 1. 브랜드명과 그룹 강제 재설정
     r.brand = normalizeBrandName(r.brand);
     r.group = getGroup(r.brand);
-
-    // 2. 키 정리
     let key = r._dedupeKey;
     if (!key) {
-       if (r.fileType === 'sabangnet') {
-         key = `S_${r.orderId}`;
-       } else if (r.fileType === 'riobell') {
-         key = `R_${r.date}_${r.channel}_${r.orderId}`;
-       } else {
-         key = `${r.date}_${r.orderId}_${r.brand}_${r.status}`; 
-       }
+       if (r.fileType === 'sabangnet') key = `S_${r.orderId}`;
+       else if (r.fileType === 'riobell') key = `R_${r.date}_${r.channel}_${r.orderId}`;
+       else key = `${r.date}_${r.orderId}_${r.brand}_${r.status}`; 
        r._dedupeKey = key;
     }
-
-    if (uniqueRecords.has(key)) {
-       duplicateCount++;
-    } else {
-       uniqueRecords.set(key, r);
-    }
+    if (uniqueRecords.has(key)) duplicateCount++;
+    else uniqueRecords.set(key, r);
   });
-
   const cleanedDB = Array.from(uniqueRecords.values());
   cleanedDB.sort((a,b)=>a.date.localeCompare(b.date));
-
   await database.ref('hana_ops_live/records').set(cleanedDB);
   showToast(`통합 완료! 중복 데이터 ${duplicateCount}건이 정리되었습니다.`);
   document.getElementById('settingsModal').classList.remove('show');
@@ -1116,7 +1360,7 @@ async function cleanUpDuplicates() {
 // ═══════════════════════════════════
 function backupData(){
   if(!DB.length){ showToast('백업할 데이터가 없습니다'); return; }
-  const blob=new Blob([JSON.stringify({version:'5.8',db:DB,goals:monthlyGoals,brandMap,groups:groupList})],{type:'application/json'});
+  const blob=new Blob([JSON.stringify({version:'8.2',db:DB,goals:monthlyGoals,brandMap,groups:groupList})],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download=`HanA_OPS_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
   document.getElementById('settingsModal').classList.remove('show');
